@@ -1,2 +1,2 @@
-# fishing-bot_MAE 263C
-fishing robot
+# fishing-bot (MAE 263C)
+A fishing robot
