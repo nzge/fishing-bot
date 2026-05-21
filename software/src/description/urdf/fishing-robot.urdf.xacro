@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fishing_robot">
+
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.1 0.1 0.1"/>
+            </geometry>
+        </visual>
+    </link>
+
+    <joint name="joint_1" type="revolute">
+        <parent link="base_link"/>
+        <child link="rod_link"/>
+        <origin xyz="0 0 0.05" rpy="0 0 0"/>
+        <axis xyz="0 0 1"/>
+        <limit lower="-1.57" upper="1.57" effort="2.5" velocity="4.0"/>
+    </joint>
+
+    <link name="rod_link">
+        <visual>
+            <origin xyz="0.25 0 0" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="0.01" length="0.5"/>
+            </geometry>
+        </link>
+    </link>
+
+    <ros2_control name="FishingRobotHardware" type="system">
+        <hardware>
+            <xacro:if value="$(arg use_sim)">
+                <plugin>mujoco_ros2_control/MujocoSystem</plugin>
+            </xacro:if>
+            <xacro:unless value="$(arg use_sim)">
+                <plugin>dynamixel_hardware/DynamixelHardware</plugin>
+                <param name="usb_port">/dev/ttyUSB0</param>
+                <param name="baud_rate">57600</param>
+                <param name="use_dummy">false</param> 
+            </xacro:unless>
+        </hardware>
+
+        <joint name="joint_1">
+            <param name="id">1</param><command_interface name="position">
+                <param name="min">-1.57</param>
+                <param name="max">1.57</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+    </ros2_control>
+
+</robot>

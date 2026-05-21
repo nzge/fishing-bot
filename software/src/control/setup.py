@@ -16,7 +16,7 @@ setup(
     maintainer='nzge',
     maintainer_email='nathange784@gmail.com',
     description='TODO: Package description',
-    license='TODO: License declaration',
+    license='MIT',
     extras_require={
         'test': [
             'pytest',
@@ -24,6 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'position_test_publisher = control.position_test_publisher:main',
         ],
     },
 )
