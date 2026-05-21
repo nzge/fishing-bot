@@ -1,0 +1,18 @@
+# --- ROS 2 / Colcon Build Patterns ---
+# This matches build, install, and log folders anywhere inside the 'software' directory
+software/**/build/
+software/**/install/
+software/**/log/
+software/**/.colcon/
+
+# --- General Python/System Patterns ---
+__pycache__/
+*.pyc
+.DS_Store
+
+# --- CAD / Simulation Specific (Recommended) ---
+# Ignore temporary SolidWorks/CAD files
+**/$*.*
+**/~*.*
+**/*.bak
+**/*.tmp
