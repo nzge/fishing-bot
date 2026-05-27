@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="fishing_assy2_collisional">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-6.4454E-17 -0.0133 -0.0071149"
+        rpy="0 0 0" />
+      <mass
+        value="0.12057" />
+      <inertia
+        ixx="4.7401E-05"
+        ixy="-1.645E-21"
+        ixz="-9.2245E-20"
+        iyy="8.3189E-05"
+        iyz="-4.1116E-21"
+        izz="8.7238E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishing_assy2_collisional/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.76078 0.4 0.18039 0.3" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishing_assy2_collisional/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="Link_1">
+    <inertial>
+      <origin
+        xyz="-2.2511E-16 0 0.02395"
+        rpy="0 0 0" />
+      <mass
+        value="0.066217" />
+      <inertia
+        ixx="2.2808E-05"
+        ixy="-3.7834E-22"
+        ixz="-3.2526E-21"
+        iyy="2.2536E-05"
+        iyz="-6.0422E-22"
+        izz="1.3637E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishing_assy2_collisional/meshes/Link_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishing_assy2_collisional/meshes/Link_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Joint_1"
+    type="revolute">
+    <origin
+      xyz="0 0 0.02335"
+      rpy="0 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="Link_1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="2.5"
+      velocity="5.76" />
+  </joint>
+  <link
+    name="Link_2">
+    <inertial>
+      <origin
+        xyz="-1.2926E-17 0.022633 0.084558"
+        rpy="0 0 0" />
+      <mass
+        value="0.06469" />
+      <inertia
+        ixx="0.00020862"
+        ixy="4.7745E-22"
+        ixz="1.8301E-20"
+        iyy="0.00020517"
+        iyz="-1.1469E-06"
+        izz="7.4616E-06" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishing_assy2_collisional/meshes/Link_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.79216 0.81961 0.93333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://fishing_assy2_collisional/meshes/Link_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="Joint_2"
+    type="revolute">
+    <origin
+      xyz="0 -0.02335 0.03875"
+      rpy="0 0 0" />
+    <parent
+      link="Link_1" />
+    <child
+      link="Link_2" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="-3.1416"
+      upper="3.1416"
+      effort="2.5"
+      velocity="5.76" />
+  </joint>
+</robot>
