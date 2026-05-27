@@ -1,0 +1,58 @@
+<mujoco model="fishing_robot">
+  <compiler angle="radian" coordinate="local" meshdir="../meshes"/>
+
+  <asset>
+    <mesh name="base_link_collision" file="base_link_collision.STL"/>
+    <mesh name="Link_1_collision" file="Link_1_collision.STL"/>
+    <mesh name="Link_2_collision" file="Link_2_collision.STL"/>
+    
+    <mesh name="base_link_visual" file="base_link.STL"/>
+    <mesh name="Link_1_visual" file="Link_1.STL"/>
+    <mesh name="Link_2_visual" file="Link_2.STL"/>
+  </asset>
+
+  <worldbody>
+    <body name="reel_anchor" pos="0 0 0">
+      <site name="reel_site" pos="0 -1.0 0" size="0.01"/>
+    </body>
+
+    <body name="base_link" pos="0 0 0">
+      <geom type="mesh" mesh="base_link_collision"/>
+      <geom type="mesh" mesh="base_link_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
+
+      <body name="Link_1" pos="0 0 0.02335">
+        <inertial pos="1.98733e-05 -0.000248211 0.0252855" quat="0.997703 0.0677224 -0.00113881 0.00132904" mass="0.0497088" diaginertia="1.48174e-05 1.25845e-05 9.64573e-06"/>
+        <joint name="Joint_1" pos="0 0 0" axis="0 0 1" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
+        <geom type="mesh" mesh="Link_1_collision"/>
+        <geom type="mesh" mesh="Link_1_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
+
+        <body name="Link_2" pos="0 -0.02335 0.03875">
+          <inertial pos="-0.000376763 0.02285 0.0758976" quat="1 0 -0.000462491 0" mass="0.0374845" diaginertia="9.81279e-05 9.58498e-05 4.42178e-06"/>
+          <joint name="Joint_2" pos="0 0 0" axis="0 1 0" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
+          <geom type="mesh" mesh="Link_2_collision"/>
+          <geom type="mesh" mesh="Link_2_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
+          
+          <site name="rod_tip_site" pos="0 0 0.19" size="0.01"/> 
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <!-- tendon>
+    <spatial name="fishing_line" stiffness="100" damping="1">
+      <site site="reel_site" />
+      <site site="rod_tip_site" />
+    </spatial>
+  </tendon -->
+
+  <sensor>
+    <force name="tension_sensor" site="rod_tip_site" />
+  </sensor>
+
+  
+
+  <keyframe>
+    <key name="starting_pose" qpos="1.57 2.61"/>
+  </keyframe>
+
+</mujoco>

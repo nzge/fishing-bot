@@ -1,52 +1,117 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="utf-8"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="fishing_robot">
 
-    <link name="base_link">
-        <visual>
-            <geometry>
-                <box size="0.1 0.1 0.1"/>
-            </geometry>
-        </visual>
-    </link>
+  <link name="base_link">
+    <inertial>
+      <origin xyz="9.64494158785974E-06 -0.0124364350363364 -0.00800838743932182" rpy="0 0 0" />
+      <mass value="0.10242435780476" />
+      <inertia ixx="3.44658980710862E-05" ixy="1.15685827535353E-08" ixz="-4.74633377970236E-09" iyy="7.35797461812803E-05" iyz="-3.93838381066106E-07" izz="7.91602302077541E-05" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://description/meshes/base_link.STL" />
+      </geometry>
+      <material name=""><color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" /></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://description/meshes/base_link_collision.STL" />
+      </geometry>
+    </collision>
+  </link>
 
-    <joint name="joint_1" type="revolute">
-        <parent link="base_link"/>
-        <child link="rod_link"/>
-        <origin xyz="0 0 0.05" rpy="0 0 0"/>
-        <axis xyz="0 0 1"/>
-        <limit lower="-1.57" upper="1.57" effort="2.5" velocity="4.0"/>
+  <link name="Link_1">
+    <inertial>
+      <origin xyz="1.98732975738997E-05 -0.000248210549754878 0.025285547707494" rpy="0 0 0" />
+      <mass value="0.0497087584246774" />
+      <inertia ixx="1.48173848978349E-05" ixy="4.74633377970562E-09" ixz="1.15685827535328E-08" iyy="1.25308227827468E-05" iyz="3.93501789908991E-07" izz="9.69942781916457E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://description/meshes/Link_1.STL" />
+      </geometry>
+      <material name=""><color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" /></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://description/meshes/Link_1_collision.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="Joint_1" type="revolute">
+    <origin xyz="0 0 0.02335" rpy="0 0 0" />
+    <parent link="base_link" />
+    <child link="Link_1" />
+    <axis xyz="0 0 1" />
+    <limit lower="-3.1416" upper="3.1416" effort="2.5" velocity="5.76" />
+  </joint>
+
+  <link name="Link_2">
+    <inertial>
+      <origin xyz="-0.000376762904282731 0.0228500014053185 0.0758975605697149" rpy="0 0 0" />
+      <mass value="0.0374844556058819" />
+      <inertia ixx="9.81277949436277E-05" ixy="4.17865645290201E-13" ixz="8.66764648076052E-08" iyy="9.58497532082512E-05" iyz="1.55605785755593E-12" izz="4.42186013584717E-06" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://description/meshes/Link_2.STL" />
+      </geometry>
+      <material name=""><color rgba="0.752941176470588 0.752941176470588 0.752941176470588 1" /></material>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <geometry>
+        <mesh filename="package://description/meshes/Link_2_collision.STL" />
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="Joint_2" type="revolute">
+    <origin xyz="0 -0.02335 0.03875" rpy="0 0 0" />
+    <parent link="Link_1" />
+    <child link="Link_2" />
+    <axis xyz="0 1 0" />
+    <limit lower="-3.1416" upper="3.1416" effort="2.5" velocity="5.76" />
+  </joint>
+
+  <ros2_control name="FishingRobotHardware" type="system">
+    <hardware>
+        <xacro:if value="$(arg use_sim)">
+            <plugin>mujoco_ros2_control/MujocoSystem</plugin>
+        </xacro:if>
+        <xacro:unless value="$(arg use_sim)">
+            <plugin>dynamixel_hardware/DynamixelHardware</plugin>
+            <param name="usb_port">/dev/ttyUSB0</param>
+            <param name="baud_rate">57600</param>
+            <param name="use_dummy">false</param> 
+        </xacro:unless>
+    </hardware>
+
+    <joint name="Joint_1">
+        <param name="id">1</param>
+        <command_interface name="position">
+            <param name="min">-3.1416</param>
+            <param name="max">3.1416</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
     </joint>
 
-    <link name="rod_link">
-        <visual>
-            <origin xyz="0.25 0 0" rpy="0 0 0"/>
-            <geometry>
-                <cylinder radius="0.01" length="0.5"/>
-            </geometry>
-        </link>
-    </link>
-
-    <ros2_control name="FishingRobotHardware" type="system">
-        <hardware>
-            <xacro:if value="$(arg use_sim)">
-                <plugin>mujoco_ros2_control/MujocoSystem</plugin>
-            </xacro:if>
-            <xacro:unless value="$(arg use_sim)">
-                <plugin>dynamixel_hardware/DynamixelHardware</plugin>
-                <param name="usb_port">/dev/ttyUSB0</param>
-                <param name="baud_rate">57600</param>
-                <param name="use_dummy">false</param> 
-            </xacro:unless>
-        </hardware>
-
-        <joint name="joint_1">
-            <param name="id">1</param><command_interface name="position">
-                <param name="min">-1.57</param>
-                <param name="max">1.57</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-    </ros2_control>
+    <joint name="Joint_2">
+        <param name="id">2</param>
+        <command_interface name="position">
+            <param name="min">-3.1416</param>
+            <param name="max">3.1416</param>
+        </command_interface>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
 
 </robot>

@@ -6,9 +6,15 @@ software/**/log/
 software/**/.colcon/
 
 # --- General Python/System Patterns ---
+# --- Python Artifacts ---
 __pycache__/
 *.pyc
-.DS_Store
+*.pyo
+*.pyd
+.venv/
+.env/
+.pytest_cache/
+.tox/
 
 # --- CAD / Simulation Specific (Recommended) ---
 # Ignore temporary SolidWorks/CAD files
@@ -16,3 +22,32 @@ __pycache__/
 **/~*.*
 **/*.bak
 **/*.tmp
+
+# Ignore virtual environments
+.venv/
+
+# --- IDE / Editor Files ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# --- Simulation / Data ---
+# ignore local log files or temporary csvs
+*.csv
+*.log
+*.bak
+
+# --- MuJoCo Simulation Artifacts ---
+# Ignore all text logs and binary model files
+*.TXT
+*.txt
+*.mjb
+*.png
+MUJOCO_LOG.TXT
+
+# Ignore direnv environment cache
+.direnv/
+
