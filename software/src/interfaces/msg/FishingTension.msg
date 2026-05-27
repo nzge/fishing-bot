@@ -1,0 +1,4 @@
+# FishingTension.msg
+std_msgs/Header header
+float32 tension_newtons
+float32 target_tension_newtons

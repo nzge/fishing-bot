@@ -1,0 +1,5 @@
+admittance_controller:
+  ros__parameters:
+    admittance_gain: 0.15
+    max_velocity: 1.0
+    safety_tension_limit: 20.0
