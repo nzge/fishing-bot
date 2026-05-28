@@ -1,0 +1,26 @@
+# Configuration for the Fishing Arm Load Cell (HX711 or similar)
+load_cell_node:
+  ros__parameters:
+    # --- Physical Calibration ---
+    # The raw ADC reading at zero load (after taring).
+    calibration_offset: 1245.0  
+    # The multiplier to convert ADC units to Newtons (e.g., N/bit).
+    calibration_scale: 0.0023   
+    
+    # --- Signal Processing ---
+    # Enable low-pass filter or moving average to smooth noise
+    use_moving_average: true
+    # Number of samples for the moving average buffer
+    window_size: 10             
+    # Frequency at which the sensor data is published (Hz)
+    publish_frequency: 80.0
+    
+    # --- Safety / Operational Limits ---
+    # If tension exceeds this, the Admittance Controller enters "E-Stop"
+    tension_max_threshold: 20.0  
+    # Below this value, treat input as noise/zero
+    noise_floor: 0.1             
+    
+    # --- Frame / Transform ---
+    # The name of the link in your URDF where the sensor is mounted
+    frame_id: "rod_tip_link"
