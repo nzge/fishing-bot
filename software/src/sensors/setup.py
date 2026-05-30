@@ -19,7 +19,7 @@ setup(
         # Include all config files (if you create a config directory)
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
-    install_requires=['setuptools', 'rclpy', 'std_msgs'], # Add your dependencies here
+    install_requires=['setuptools', 'rclpy', 'std_msgs', 'interfaces'],
     zip_safe=True,
     maintainer='nzge',
     maintainer_email='nathange784@gmail.com',

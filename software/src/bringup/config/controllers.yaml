@@ -8,10 +8,18 @@ controller_manager:
     position_trajectory_controller:
       type: joint_trajectory_controller/JointTrajectoryController
 
+    # --- Simulation-only controllers (spawned only when use_sim:=true) ---
+    fish_effort_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    tension_sensor_broadcaster:
+      type: force_torque_sensor_broadcaster/ForceTorqueSensorBroadcaster
+
 position_trajectory_controller:
   ros__parameters:
     joints:
-      - joint_1
+      - Joint_1
+      - Joint_2
     command_interfaces:
       - position
     state_interfaces:
@@ -20,3 +28,18 @@ position_trajectory_controller:
     state_publish_rate: 50.0
     action_monitor_rate: 20.0
     allow_partial_joints_goal: false
+
+# The fish pulls the line via an effort command on its MuJoCo slide joint.
+# fish_agent publishes std_msgs/Float64MultiArray on /fish_effort_controller/commands.
+fish_effort_controller:
+  ros__parameters:
+    joints:
+      - fish_swim
+    interface_name: effort
+
+# Publishes the rod-tip load cell as geometry_msgs/WrenchStamped on
+# /tension_sensor_broadcaster/wrench. load_cell converts it to FishingTension.
+tension_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: tension_sensor
+    frame_id: rod_tip_link

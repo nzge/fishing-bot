@@ -1,0 +1,109 @@
+<mujoco model="fishing_robot">
+  <compiler angle="radian" meshdir="../meshes"/>
+
+  <option gravity="0 0 -9.81"/>
+
+  <!-- Enlarge the offscreen framebuffer so the diagnostics renderer can capture
+       HD (1280x720) isometric frames; MuJoCo defaults to 640x480. -->
+  <visual>
+    <global offwidth="1920" offheight="1080"/>
+  </visual>
+
+  <asset>
+    <mesh name="base_link_collision" file="base_link_collision.STL"/>
+    <mesh name="Link_1_collision" file="Link_1_collision.STL"/>
+    <mesh name="Link_2_collision" file="Link_2_collision.STL"/>
+
+    <mesh name="base_link_visual" file="base_link.STL"/>
+    <mesh name="Link_1_visual" file="Link_1.STL"/>
+    <mesh name="Link_2_visual" file="Link_2.STL"/>
+
+    <!-- Checkered floor for the ground plane -->
+    <texture name="grid" type="2d" builtin="checker" rgb1="0.2 0.25 0.3" rgb2="0.3 0.35 0.4" width="300" height="300"/>
+    <material name="grid" texture="grid" texrepeat="8 8" reflectance="0.1"/>
+  </asset>
+
+  <worldbody>
+    <light pos="0 0 1.5" dir="0 0 -1" diffuse="0.8 0.8 0.8"/>
+
+    <!-- Ground at the robot base level (z=0). Its default contact groups
+         (contype=1/conaffinity=1) collide with the arm's collision meshes,
+         so the rod cannot swing below the base plane. -->
+    <geom name="ground" type="plane" pos="0 0 -0.0253" size="2 2 0.01" material="grid"/>
+
+    <!-- ===================== The Robot Arm ===================== -->
+    <body name="base_link" pos="0 0 0">
+      <geom type="mesh" mesh="base_link_collision"/>
+      <geom type="mesh" mesh="base_link_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
+
+      <body name="Link_1" pos="0 0 0.02335">
+        <inertial pos="1.98733e-05 -0.000248211 0.0252855" quat="0.997703 0.0677224 -0.00113881 0.00132904" mass="0.0497088" diaginertia="1.48174e-05 1.25845e-05 9.64573e-06"/>
+        <joint name="Joint_1" pos="0 0 0" axis="0 0 1" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
+        <geom type="mesh" mesh="Link_1_collision"/>
+        <geom type="mesh" mesh="Link_1_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
+
+        <body name="Link_2" pos="0 -0.02335 0.03875">
+          <inertial pos="-0.000376763 0.02285 0.0758976" quat="1 0 -0.000462491 0" mass="0.0374845" diaginertia="9.81279e-05 9.58498e-05 4.42178e-06"/>
+          <joint name="Joint_2" pos="0 0 0" axis="0 1 0" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
+          <geom type="mesh" mesh="Link_2_collision"/>
+          <geom type="mesh" mesh="Link_2_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
+
+          <!-- Rod tip: near end of the line + load-cell measurement point.
+               Mirrors 'rod_tip_link' in the URDF. -->
+          <site name="rod_tip_site" pos="0 0.024 0.185" size="0.01" rgba="0 1 0 1"/>
+        </body>
+      </body>
+    </body>
+
+    <!-- ===================== The Fish =====================
+         Environmental disturbance at the FAR end of the line. Rendered as a
+         sphere ("circle") for now; replace <geom> with a fish mesh later.
+         A slide joint lets the fish swim along Y; the 'fish_force' actuator
+         lets planning/fish_agent pull on it, which tensions the line. -->
+    <body name="fish" pos="0 0.4 0.0">
+      <joint name="fish_swim" type="slide" axis="0 -1 0" range="-0.35 0.35" damping="0.5"/>
+      <!-- contype/conaffinity 0: the fish ignores ground collision (it only
+           slides in Y); otherwise it would penetrate/fight the floor. -->
+      <geom name="fish_geom" type="sphere" size="0.03" rgba="0.9 0.45 0.15 1" mass="0.25" contype="0" conaffinity="0"/>
+      <site name="fish_site" pos="0 0 0" size="0.008" rgba="1 0 0 1"/>
+    </body>
+  </worldbody>
+
+  <!-- ================== The Fishing Line ==================
+       Elastic spatial tendon: rod tip <-> fish. springlength is the slack
+       length; beyond it the line pulls like a spring (stiffness/damping). -->
+  <tendon>
+    <spatial name="fishing_line" width="0.0015" rgba="0.05 0.05 0.05 1"
+             stiffness="30" damping="0.5" springlength="0.38">
+      <site site="rod_tip_site"/>
+      <site site="fish_site"/>
+    </spatial>
+  </tendon>
+
+  <actuator>
+    <!-- Arm servos: the ros2_control 'position' command interface for Joint_1 /
+         Joint_2 maps natively onto these MuJoCo position actuators. -->
+    <position joint="Joint_1" name="Joint_1" kp="10" dampratio="1" ctrlrange="-3.1416 3.1416"/>
+    <position joint="Joint_2" name="Joint_2" kp="10" dampratio="1" ctrlrange="-3.1416 3.1416"/>
+    <!-- The fish's pull: ros2_control 'effort' interface for the fish_swim joint
+         maps onto this motor (commanded via a forward_command_controller). -->
+    <motor name="fish_force" joint="fish_swim" gear="1" ctrlrange="-5 5"/>
+  </actuator>
+
+  <!-- ============== Line tension (the load cell) ==============
+       Force transmitted through the rod-tip site = what the load cell reads.
+       mujoco_ros2_control combines the _force/_torque pair into a single FTS,
+       exposed by force_torque_sensor_broadcaster. 'line_length' aids debugging. -->
+  <sensor>
+    <force name="tension_sensor_force" site="rod_tip_site"/>
+    <torque name="tension_sensor_torque" site="rod_tip_site"/>
+    <tendonpos name="line_length" tendon="fishing_line"/>
+  </sensor>
+
+  <!-- qpos order: Joint_1, Joint_2, fish_swim. Rod starts upright with the
+       line cast out to the fish. -->
+  <keyframe>
+    <key name="starting_pose" qpos="1.57 1.745"/>
+  </keyframe>
+
+</mujoco>

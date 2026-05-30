@@ -1,0 +1,17 @@
+# Recorder configuration.
+#   output_dir   -> BASE dir; each run writes a <timestamp>/ subfolder inside it.
+#                   Lives in the repo so recordings are versioned with the project.
+#   mjcf_path    -> '' auto-resolves to description share / urdf / fishing-robot_sim.xml
+#   render_script-> '' auto-resolves to diagnostics share / scripts / render_animation.py
+recorder:
+  ros__parameters:
+    output_dir: "/home/nzge/fishing-bot/software/recordings"
+    mjcf_path: ""
+    render_script: ""
+    # Python that can import mujoco (the project virtualenv) for the renderer.
+    venv_python: "/home/nzge/fishing-bot/.venv/bin/python"
+    auto_render: true
+    video_format: "mp4"      # 'mp4' (needs imageio-ffmpeg) or 'gif'
+    video_fps: 30
+    qpos_joints: ["Joint_1", "Joint_2", "fish_swim"]
+    arm_joints: ["Joint_1", "Joint_2"]

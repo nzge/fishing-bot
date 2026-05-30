@@ -29,10 +29,10 @@ class PositionTestPublisher(Node):
         elapsed_time = (current_time - self.start_time).nanoseconds / 1e9
         
         # Calculate smooth sinusoidal target configuration
-        target_position = self.max_amplitude * math.sin(2.0 * math.split.pi * self.frequency * elapsed_time)
+        target_position = self.max_amplitude * math.sin(2.0 * math.pi * self.frequency * elapsed_time)
         
         msg = JointTrajectory()
-        msg.joint_names = ['joint_1']
+        msg.joint_names = ['Joint_1']
         
         point = JointTrajectoryPoint()
         point.positions = [target_position]

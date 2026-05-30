@@ -9,6 +9,27 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <!-- ros2_control stack hosted/spawned by robot.launch.py -->
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
+  <exec_depend>joint_trajectory_controller</exec_depend>
+  <exec_depend>forward_command_controller</exec_depend>
+  <exec_depend>force_torque_sensor_broadcaster</exec_depend>
+
+  <!-- URDF processing + TF -->
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>xacro</exec_depend>
+
+  <!-- Simulation backend (built from source; not in rosdistro, see note below) -->
+  <!-- <exec_depend>mujoco_ros2_control</exec_depend> -->
+
+  <!-- Application packages whose launch files this maestro includes -->
+  <exec_depend>control</exec_depend>
+  <exec_depend>sensors</exec_depend>
+  <exec_depend>planning</exec_depend>
+  <exec_depend>description</exec_depend>
+  <exec_depend>diagnostics</exec_depend>
+
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

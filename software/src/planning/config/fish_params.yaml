@@ -1,0 +1,9 @@
+# Disturbance profile for the virtual "fish" (simulation only).
+# The fish applies this force to its body in MuJoCo; the line transmits it to
+# the rod tip where the load cell measures the resulting tension.
+fish_agent:
+  ros__parameters:
+    mean_force: 3.0        # N, steady pull along the line
+    amplitude: 2.0         # N, sinusoidal "fight" about the mean
+    frequency: 0.5         # Hz, how fast the fish thrashes
+    publish_frequency: 50.0  # Hz, command update rate

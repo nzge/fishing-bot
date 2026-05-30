@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import find_packages, setup
 
 package_name = 'control'
@@ -10,12 +12,13 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='nzge',
     maintainer_email='nathange784@gmail.com',
-    description='TODO: Package description',
+    description='Admittance control logic for the robotic fishing arm',
     license='MIT',
     extras_require={
         'test': [
@@ -24,6 +27,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            'admittance_node = control.admittance_controller:main',
             'position_test_publisher = control.position_test_publisher:main',
         ],
     },

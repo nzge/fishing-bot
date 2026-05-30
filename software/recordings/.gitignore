@@ -1,0 +1,6 @@
+# Generated recording artifacts (animation.mp4, diagnostics.png, recording.npz)
+# live in per-run <timestamp>/ subfolders. Ignore them all but keep the folder
+# tracked via this file.
+*
+!.gitignore
+!.gitkeep
