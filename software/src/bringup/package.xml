@@ -3,7 +3,7 @@
 <package format="3">
   <name>bringup</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Top-level launch orchestration for the fishing arm: sim/real switch, ros2_control, and delegation to application packages.</description>
   <maintainer email="nathange784@gmail.com">nzge</maintainer>
   <license>MIT</license>
 

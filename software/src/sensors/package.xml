@@ -3,7 +3,7 @@
 <package format="3">
   <name>sensors</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Line-tension sensing: HX711 load cell on hardware, MuJoCo FTS in simulation.</description>
   <maintainer email="nathange784@gmail.com">nzge</maintainer>
   <license>MIT</license>
 

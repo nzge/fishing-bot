@@ -1,0 +1,8 @@
+# Sphinx build output
+_build/
+
+# Generated reference + API pages (created only when you run docs/build.sh)
+_generated/
+
+# Local docs virtualenv
+.venv/

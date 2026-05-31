@@ -3,7 +3,7 @@
 <package format="3">
   <name>description</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Robot description assets: URDF/xacro, MuJoCo MJCF, and STL meshes for the fishing arm.</description>
   <maintainer email="nathange784@gmail.com">nzge</maintainer>
   <license>MIT</license>
 

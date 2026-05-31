@@ -1,0 +1,21 @@
+/* Custom theming for the fishing-robot docs (Furo). */
+:root {
+  --color-brand-primary: #0b6e99;
+  --color-brand-content: #0b6e99;
+}
+
+/* Tighten generated parameter / reference tables a touch. */
+table.docutils td,
+table.docutils th {
+  padding: 0.35rem 0.6rem;
+}
+
+/* Make inline code in tables a little calmer. */
+table code.literal {
+  font-size: 0.85em;
+}
+
+/* Card grid spacing on the landing page. */
+.sd-card {
+  border-radius: 0.6rem;
+}

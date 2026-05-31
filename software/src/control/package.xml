@@ -3,7 +3,7 @@
 <package format="3">
   <name>control</name>
   <version>0.0.0</version>
-  <description>Control logic</description>
+  <description>Admittance control logic for the robotic fishing arm.</description>
   <maintainer email="nathange784@gmail.com">nzge</maintainer>
   <license>MIT</license>
 
