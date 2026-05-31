@@ -15,3 +15,18 @@ recorder:
     video_fps: 30
     qpos_joints: ["Joint_1", "Joint_2", "fish_swim"]
     arm_joints: ["Joint_1", "Joint_2"]
+
+# Bring-up self-test (run with hardware_check:=true). Small, slow, open-loop
+# moves + a tension sampling window; tune the safety margins for your rig.
+hardware_check:
+  ros__parameters:
+    joints: ["Joint_1", "Joint_2"]
+    move_delta: 0.2              # rad, per-joint test move
+    move_time: 2.0              # s, trajectory duration (slow = gentle)
+    settle_time: 1.0            # s, extra time to arrive
+    position_tolerance: 0.08    # rad, pass band on reaching the target
+    startup_timeout: 15.0       # s, wait for controllers/hardware
+    tension_check_duration: 3.0 # s, sensor sampling window
+    tension_min: -50.0
+    tension_max: 50.0
+    require_tension_variation: false

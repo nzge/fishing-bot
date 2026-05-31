@@ -18,6 +18,10 @@
     <mesh name="Link_1_visual" file="Link_1.STL"/>
     <mesh name="Link_2_visual" file="Link_2.STL"/>
 
+    <!-- Fish body mesh (units = metres). Replace fish.STL with any fish model to
+         change its look; adjust 'scale' here to resize it. -->
+    <mesh name="fish_mesh" file="fish.STL" scale="0.1 0.1 0.1"/>
+
     <!-- Checkered floor for the ground plane -->
     <texture name="grid" type="2d" builtin="checker" rgb1="0.2 0.25 0.3" rgb2="0.3 0.35 0.4" width="300" height="300"/>
     <material name="grid" texture="grid" texrepeat="8 8" reflectance="0.1"/>
@@ -33,19 +37,19 @@
 
     <!-- ===================== The Robot Arm ===================== -->
     <body name="base_link" pos="0 0 0">
-      <geom type="mesh" mesh="base_link_collision"/>
+      <geom type="mesh" mesh="base_link_collision" group="3"/>
       <geom type="mesh" mesh="base_link_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
 
       <body name="Link_1" pos="0 0 0.02335">
         <inertial pos="1.98733e-05 -0.000248211 0.0252855" quat="0.997703 0.0677224 -0.00113881 0.00132904" mass="0.0497088" diaginertia="1.48174e-05 1.25845e-05 9.64573e-06"/>
         <joint name="Joint_1" pos="0 0 0" axis="0 0 1" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
-        <geom type="mesh" mesh="Link_1_collision"/>
+        <geom type="mesh" mesh="Link_1_collision" group="3"/>
         <geom type="mesh" mesh="Link_1_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
 
         <body name="Link_2" pos="0 -0.02335 0.03875">
           <inertial pos="-0.000376763 0.02285 0.0758976" quat="1 0 -0.000462491 0" mass="0.0374845" diaginertia="9.81279e-05 9.58498e-05 4.42178e-06"/>
           <joint name="Joint_2" pos="0 0 0" axis="0 1 0" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
-          <geom type="mesh" mesh="Link_2_collision"/>
+          <geom type="mesh" mesh="Link_2_collision" group="3"/>
           <geom type="mesh" mesh="Link_2_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
 
           <!-- Rod tip: near end of the line + load-cell measurement point.
@@ -56,15 +60,16 @@
     </body>
 
     <!-- ===================== The Fish =====================
-         Environmental disturbance at the FAR end of the line. Rendered as a
-         sphere ("circle") for now; replace <geom> with a fish mesh later.
-         A slide joint lets the fish swim along Y; the 'fish_force' actuator
-         lets planning/fish_agent pull on it, which tensions the line. -->
+         Environmental disturbance at the FAR end of the line. Rendered with the
+         generated fish mesh; the euler rotates its nose (+X) to face the robot
+         (-Y). A slide joint lets the fish swim along Y; the 'fish_force'
+         actuator lets planning/fish_agent pull on it, tensioning the line. -->
     <body name="fish" pos="0 0.4 0.0">
       <joint name="fish_swim" type="slide" axis="0 -1 0" range="-0.35 0.35" damping="0.5"/>
       <!-- contype/conaffinity 0: the fish ignores ground collision (it only
            slides in Y); otherwise it would penetrate/fight the floor. -->
-      <geom name="fish_geom" type="sphere" size="0.03" rgba="0.9 0.45 0.15 1" mass="0.25" contype="0" conaffinity="0"/>
+      <geom name="fish_geom" type="mesh" mesh="fish_mesh" euler="0 0 -1.5708"
+            rgba="0.85 0.5 0.2 1" mass="0.25" contype="0" conaffinity="0"/>
       <site name="fish_site" pos="0 0 0" size="0.008" rgba="1 0 0 1"/>
     </body>
   </worldbody>
@@ -74,7 +79,7 @@
        length; beyond it the line pulls like a spring (stiffness/damping). -->
   <tendon>
     <spatial name="fishing_line" width="0.0015" rgba="0.05 0.05 0.05 1"
-             stiffness="30" damping="0.5" springlength="0.38">
+             stiffness="200" damping="0.5" springlength="0.38">
       <site site="rod_tip_site"/>
       <site site="fish_site"/>
     </spatial>

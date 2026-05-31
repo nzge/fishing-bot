@@ -18,7 +18,7 @@ setup(
         # is shipped as a data file rather than a console_scripts entry point.
         (os.path.join('share', package_name, 'scripts'), glob('scripts/*.py')),
     ],
-    install_requires=['setuptools', 'rclpy', 'sensor_msgs', 'interfaces'],
+    install_requires=['setuptools', 'rclpy', 'sensor_msgs', 'trajectory_msgs', 'interfaces'],
     zip_safe=True,
     maintainer='nzge',
     maintainer_email='nathange784@gmail.com',
@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': [
             'recorder = diagnostics.recorder:main',
+            'hardware_check = diagnostics.hardware_check:main',
         ],
     },
 )

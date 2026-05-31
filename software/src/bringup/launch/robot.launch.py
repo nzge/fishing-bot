@@ -1,8 +1,9 @@
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction, Shutdown,
-    TimerAction)
+    DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction,
+    RegisterEventHandler, Shutdown, TimerAction)
 from launch.conditions import IfCondition, UnlessCondition
+from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution,
@@ -38,6 +39,13 @@ def generate_launch_description():
     record_arg = DeclareLaunchArgument(
         'record', default_value='false',
         description='Capture diagnostics plots + animation of the run (sim only)')
+
+    # Bring-up self-test: open-loop motor + sensor function checks. Disables the
+    # admittance loop so nothing competes with the test commands.
+    hardware_check = LaunchConfiguration('hardware_check')
+    hardware_check_arg = DeclareLaunchArgument(
+        'hardware_check', default_value='false',
+        description='Run the motor/sensor bring-up self-test, then shut down')
 
     # 2. Package shares.
     description_pkg = FindPackageShare('description')
@@ -121,9 +129,11 @@ def generate_launch_description():
 
     # 7. Delegation Pattern: each application layer comes from its own package's
     #    launch file rather than being re-declared inline here.
+    #    The admittance loop is suppressed during the bring-up self-test.
     control_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([control_pkg, 'launch', 'control.launch.py'])),
+        condition=UnlessCondition(hardware_check),
     )
     # The load cell runs in both modes; only its data source changes. On hardware
     # it reads the HX711; in sim it converts the MuJoCo FTS wrench to tension.
@@ -147,6 +157,23 @@ def generate_launch_description():
         condition=IfCondition(record),
     )
 
+    # Bring-up self-test node (motor + sensor function checks). Runs only when
+    # hardware_check:=true; when it exits, the whole launch shuts down.
+    diagnostics_params = PathJoinSubstitution(
+        [diagnostics_pkg, 'config', 'diagnostics_params.yaml'])
+    hardware_check_node = Node(
+        package='diagnostics',
+        executable='hardware_check',
+        name='hardware_check',
+        output='screen',
+        parameters=[diagnostics_params],
+        condition=IfCondition(hardware_check),
+    )
+    hardware_check_shutdown = RegisterEventHandler(
+        OnProcessExit(target_action=hardware_check_node, on_exit=[Shutdown()]),
+        condition=IfCondition(hardware_check),
+    )
+
     # Resolve run_duration at launch time and, if positive, schedule a shutdown.
     def _schedule_shutdown(context, *_args, **_kwargs):
         seconds = float(run_duration.perform(context))
@@ -163,6 +190,7 @@ def generate_launch_description():
         headless_arg,
         run_duration_arg,
         record_arg,
+        hardware_check_arg,
         shutdown_timer,
         robot_state_pub_node,
         controller_manager_node,
@@ -175,4 +203,6 @@ def generate_launch_description():
         sensor_launch,
         fish_launch,
         diagnostics_launch,
+        hardware_check_node,
+        hardware_check_shutdown,
     ])
