@@ -10,7 +10,7 @@ cd ~/fishing-bot/software
 
 python3 -m venv docs/.venv
 source docs/.venv/bin/activate
-pip install -r docs/requirements.txt
+pip install -r docs/requirements.pip
 
 ./docs/build.sh
 ```

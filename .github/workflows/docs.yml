@@ -22,7 +22,6 @@ permissions:
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -37,10 +36,10 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-          cache-dependency-path: software/docs/requirements.txt
+          cache-dependency-path: software/docs/requirements.pip
 
       - name: Install docs toolchain
-        run: pip install -r software/docs/requirements.txt
+        run: pip install -r software/docs/requirements.pip
 
       - name: Build HTML (warnings are errors)
         run: make -C software/docs html SPHINXOPTS="-W --keep-going"
@@ -52,7 +51,6 @@ jobs:
           path: software/docs/_build/html
 
   deploy:
-    # Only deploy from main; PRs just build.
     if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest

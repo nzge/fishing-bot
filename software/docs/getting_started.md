@@ -59,7 +59,7 @@ cd ~/fishing-bot/software
 # One-time: create an isolated docs environment
 python3 -m venv docs/.venv
 source docs/.venv/bin/activate
-pip install -r docs/requirements.txt
+pip install -r docs/requirements.pip
 
 ./docs/build.sh
 ```

@@ -10,7 +10,7 @@ cd "$DOCS_DIR"
 
 if [[ ! -d .venv ]]; then
   echo "Docs venv not found. Create it once:" >&2
-  echo "  python3 -m venv docs/.venv && source docs/.venv/bin/activate && pip install -r docs/requirements.txt" >&2
+  echo "  python3 -m venv docs/.venv && source docs/.venv/bin/activate && pip install -r docs/requirements.pip" >&2
   exit 1
 fi
 

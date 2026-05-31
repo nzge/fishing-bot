@@ -59,7 +59,7 @@ First-time setup (once):
 ```bash
 python3 -m venv docs/.venv
 source docs/.venv/bin/activate
-pip install -r docs/requirements.txt
+pip install -r docs/requirements.pip
 ```
 
 Other commands:

@@ -53,7 +53,7 @@ exclude_patterns = [
     ".DS_Store",
     ".venv",
     "**/.venv",
-    "requirements.txt",
+    "requirements.pip",
     "README.md",
 ]
 
