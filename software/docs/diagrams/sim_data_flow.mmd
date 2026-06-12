@@ -1,24 +1,18 @@
-%% MuJoCo simulation — physical cause-and-effect chain (below ROS layer)
+%% MuJoCo simulation — physics chain (report layout: horizontal)
+%%{init: {'flowchart': {'nodeSpacing': 14, 'rankSpacing': 30, 'padding': 8}}}%%
 
-flowchart TB
-    classDef agent fill:#fff3e0,stroke:#e65100
-    classDef physics fill:#e8f5e9,stroke:#2e7d32
-    classDef sensor fill:#e3f2fd,stroke:#1565c0
+flowchart LR
+    classDef agent fill:#fff3e0,stroke:#e65100,stroke-width:1.5px
+    classDef physics fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    classDef sensor fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px
 
-    FA["fish_agent<br/>sinusoidal effort cmd"]:::agent
-    MOTOR["MuJoCo fish_force motor<br/>fish_swim prismatic joint"]:::physics
+    FA["fish_agent"]:::agent
+    MOTOR["fish_force motor"]:::physics
     FISH["fish body"]:::physics
-    TENDON["line tendon<br/>k=220 N/m · L0=0.20 m · c=1.5"]:::physics
-    ROD["rod_tip_site"]:::physics
-    FTS["tension_sensor FTS<br/>(MJCF sensor)"]:::sensor
-    TF["TF: rod_tip_link ↔ fish_link"]:::sensor
+    TENDON["line tendon<br/>k·ΔL + c·ΔL̇"]:::physics
+    ROD["rod tip"]:::physics
+    LC["load_cell_node<br/>stretch / FTS"]:::sensor
+    CTRL["tension controller"]:::sensor
 
-    FA -->|"Float64 effort"| MOTOR
-    MOTOR --> FISH
-    FISH --> TENDON
-    TENDON --> ROD
-    ROD --> FTS
-    ROD --> TF
-    FTS -->|"WrenchStamped<br/>(fallback)"| LC1["load_cell_node<br/>stretch model OR wrench magnitude"]
-    TF -->|"line length L"| LC1
-    LC1 -->|"FishingTension"| CTRL["tension controller"]
+    FA -->|effort| MOTOR --> FISH --> TENDON --> ROD
+    ROD -->|FTS or TF length| LC -->|FishingTension| CTRL

@@ -128,21 +128,82 @@ Published site: <https://nzge.github.io/fishing-bot/>
 
 ## Export diagrams for LaTeX reports
 
+Diagram PDFs are **exported automatically** when you build the docs. Only
+diagrams whose `.mmd` source changed are re-rendered (incremental).
+
+**One-time setup** (Node.js required):
+
+```bash
+cd ~/fishing-bot/software/docs
+npm ci
+```
+
+**Build docs + refresh PDFs:**
+
+```bash
+./docs/build.sh
+# PDFs land in: software/docs/exports/pdf/
+# Also copied to: software/docs/_static/diagrams/ (downloadable from the site)
+```
+
+**PDF only** (no Sphinx HTML):
+
+```bash
+make -C software/docs diagrams-pdf
+```
+
+Each PDF uses `mmdc --pdfFit`: the page is cropped to the diagram bounds
+(no US-letter whitespace).
+
+**Skip PDF export:**
+
+```bash
+./docs/build.sh --no-pdf
+```
+
+### LaTeX
+
+```latex
+\usepackage{graphicx}
+\includegraphics[width=\linewidth]{figures/simulation_ros2_graph.pdf}
+```
+
+Copy from `software/docs/exports/pdf/` into your report `figures/` folder.
+
+### Two-column LaTeX tips
+
+Diagrams are laid out **wide and shallow** (horizontal lanes) for IEEE-style
+columns. Prefer:
+
+```latex
+% Single column — usually fits the wide layouts
+\includegraphics[width=\columnwidth]{figures/simulation_ros2_graph.pdf}
+
+% Spans both columns if a figure is still tight
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=0.92\textwidth]{figures/simulation_ros2_graph.pdf}
+  \caption{Simulation ROS~2 graph (lane 1: fish; lane 2: control; lane 3: sensing).}
+\end{figure*}
+```
+
+### Manual / other formats
+
 **Option A — download after build**
 
 ```bash
 ./docs/build.sh
-cp docs/_build/html/_static/diagrams/*.mmd ~/report/figures/
+cp docs/exports/pdf/*.pdf ~/report/figures/
 ```
 
-Paste into [mermaid.live](https://mermaid.live) → Export PNG/SVG.
-
-**Option B — mermaid-cli**
+**Option B — SVG** (vector, needs `\includesvg` + Inkscape)
 
 ```bash
-npm i -g @mermaid-js/mermaid-cli
-make -C software/docs export-diagrams
-# → docs/exports/*.svg
+make -C software/docs diagrams-svg
 ```
+
+**Option C — mermaid.live**
+
+Paste any `diagrams/*.mmd` into [mermaid.live](https://mermaid.live) → Export PNG/SVG.
 
 See {doc}`ros2/diagram_exports` for the full diagram catalog.

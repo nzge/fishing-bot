@@ -53,6 +53,8 @@ exclude_patterns = [
     ".DS_Store",
     ".venv",
     "**/.venv",
+    "node_modules",
+    "**/node_modules",
     "requirements.pip",
     "README.md",
     "_generated/ros_graph/fragments",

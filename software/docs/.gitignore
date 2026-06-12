@@ -4,8 +4,11 @@ _build/
 # Generated reference + API pages (created only when you run docs/build.sh)
 _generated/
 
-# SVG exports from make export-diagrams
+# SVG/PDF exports from make export-diagrams / diagrams-pdf
 exports/
+
+# Node tooling for Mermaid → PDF export (keep package-lock.json tracked)
+node_modules/
 
 # Local docs virtualenv
 .venv/

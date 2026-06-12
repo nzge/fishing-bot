@@ -1,0 +1,8 @@
+{
+  "name": "fishing-bot-docs",
+  "private": true,
+  "description": "Tooling for exporting Mermaid diagrams to PDF/SVG (docs build)",
+  "devDependencies": {
+    "@mermaid-js/mermaid-cli": "^11.4.2"
+  }
+}

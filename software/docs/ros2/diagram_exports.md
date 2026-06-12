@@ -1,27 +1,33 @@
 # Standalone Diagram Exports
 
-Diagrams are maintained as **version-controlled Mermaid source** in
-`software/docs/diagrams/*.mmd`. The Sphinx build copies them to
-`_static/diagrams/` so they appear in the built site and can be downloaded.
+Diagram sources live in `software/docs/diagrams/*.mmd`. **PDF exports are
+generated automatically** on every docs build (incremental — only changed
+diagrams are re-rendered).
+
+## Quick start
+
+```bash
+cd ~/fishing-bot/software/docs
+npm ci                    # one-time: installs @mermaid-js/mermaid-cli
+./build.sh                # exports PDFs + builds HTML
+# PDFs: exports/pdf/*.pdf
+```
+
+PDF-only, no HTML:
+
+```bash
+make diagrams-pdf
+```
+
+## Built site + report copies
+
+| Format | Location |
+| --- | --- |
+| Mermaid source | `diagrams/*.mmd` (git) |
+| **PDF (LaTeX)** | `exports/pdf/*.pdf` (generated) |
+| PDF (downloadable) | `_static/diagrams/*.pdf` (copied on export) |
+| HTML render | inline on {doc}`simulation`, {doc}`hardware`, etc. |
 
 ```{include} ../_generated/ros_graph/diagrams.md
 :start-line: 2
 ```
-
-## Embedded vs standalone
-
-| Use case | Location |
-| --- | --- |
-| Browse in docs site | {doc}`simulation`, {doc}`hardware`, {doc}`../packages/index` |
-| Download raw Mermaid | `_build/html/_static/diagrams/*.mmd` after build |
-| Edit source | `software/docs/diagrams/*.mmd` in the repo |
-| LaTeX / Word report | Export SVG via `mmdc` or [mermaid.live](https://mermaid.live) |
-
-## Makefile shortcut
-
-```bash
-make -C software/docs export-diagrams
-```
-
-Requires `@mermaid-js/mermaid-cli` (`npm i -g @mermaid-js/mermaid-cli`).
-Writes SVGs to `software/docs/exports/`.

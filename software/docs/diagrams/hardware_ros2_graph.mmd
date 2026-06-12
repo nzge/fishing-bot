@@ -1,70 +1,50 @@
-%% Fishing Robot — Hardware ROS 2 Graph
-%% Standalone diagram for reports. Also embedded in docs/ros2/hardware.md
-%% Render: https://mermaid.live  |  mmdc -i hardware_ros2_graph.mmd -o hardware_ros2_graph.svg
+%% Fishing Robot — Hardware ROS 2 Graph (report layout: wide lanes)
+%%{init: {'flowchart': {'nodeSpacing': 12, 'rankSpacing': 28, 'padding': 10, 'htmlLabels': true}}}%%
 
 flowchart TB
-    classDef node fill:#e8f4fc,stroke:#0b6e99,stroke-width:2px
-    classDef hw fill:#fce4ec,stroke:#c62828,stroke-width:2px
-    classDef ctrl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef infra fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef node fill:#e8f4fc,stroke:#0b6e99,stroke-width:1.5px
+    classDef hw fill:#fce4ec,stroke:#c62828,stroke-width:1.5px
+    classDef ctrl fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    classDef infra fill:#f3e5f5,stroke:#6a1b9a,stroke-width:1.5px
+    classDef topic fill:#fafafa,stroke:#757575,stroke-width:1px,font-size:11px
+    classDef absent fill:#f5f5f5,stroke:#bdbdbd,stroke-width:1px,stroke-dasharray:4 4
 
-    subgraph launch["bringup — robot.launch.py (use_sim:=false)"]
-        direction TB
-    end
-
-    subgraph tf["Transform & Description"]
-        RSP["robot_state_publisher<br/><i>robot_state_publisher</i>"]:::infra
-    end
-
-    subgraph hw_ctrl["ros2_control (realtime loop)"]
-        CM["controller_manager<br/>ros2_control_node<br/><i>dynamixel_hardware plugin</i>"]:::hw
-        JSB["joint_state_broadcaster"]:::infra
-        PTC["position_trajectory_controller<br/><i>JointTrajectoryController</i>"]:::ctrl
-    end
-
-    subgraph physical["Physical layer"]
-        DX["Dynamixel XL430<br/>Joint_1 · Joint_2<br/><i>/dev/ttyUSB0</i>"]:::hw
-        HX["HX711 load cell<br/><i>rod tip line tension</i>"]:::hw
-    end
-
-    subgraph apps["Application nodes (ament_python)"]
-        CTRL["admittance_controller<br/>OR force_feedback_controller<br/><i>control</i>"]:::ctrl
-        LC["load_cell_node<br/><i>sensors — source:=hardware</i>"]:::node
-        HWC["hardware_check<br/><i>diagnostics — hardware_check:=true</i>"]:::node
-    end
-
-    subgraph absent["NOT present on hardware"]
+    subgraph lane1["Lane 1 · Arm control loop"]
         direction LR
-        X1["fish_agent"] 
-        X2["fish_effort_controller"]
-        X3["tension_sensor_broadcaster"]
-        X4["recorder / MuJoCo render"]
+        CTRL["admittance / force_feedback<br/><i>control</i>"]:::ctrl
+        T_TRAJ["/position_trajectory_controller/joint_trajectory"]:::topic
+        PTC["position_trajectory_controller"]:::ctrl
+        CM["controller_manager<br/><i>dynamixel_hardware</i>"]:::hw
+        DX["Dynamixel XL430<br/>Joint_1 · Joint_2"]:::hw
+        JSB["joint_state_broadcaster"]:::infra
+        T_JS["/joint_states"]:::topic
+        CTRL --> T_TRAJ --> PTC --> CM <-->|pos / fbk| DX
+        CM --> JSB --> T_JS --> CTRL
     end
 
-    subgraph topics["Topics (message types)"]
-        T_JS["/joint_states<br/>sensor_msgs/JointState"]
-        T_TRAJ["/position_trajectory_controller/joint_trajectory<br/>trajectory_msgs/JointTrajectory"]
-        T_TEN["/fishing_arm/tension<br/>interfaces/FishingTension"]
-        T_TF["/tf · /tf_static<br/>tf2_msgs/TFMessage"]
-        T_RD["/robot_description<br/>std_msgs/String"]
+    subgraph lane2["Lane 2 · Tension sensing"]
+        direction LR
+        HX["HX711 load cell"]:::hw
+        LC["load_cell_node<br/><i>hardware</i>"]:::node
+        T_TEN["/fishing_arm/tension"]:::topic
+        HX -->|"ADC"| LC --> T_TEN --> CTRL
     end
 
-    RSP --> T_RD
-    RSP --> T_TF
+    subgraph lane3["Lane 3 · TF & bring-up test"]
+        direction LR
+        RSP["robot_state_publisher"]:::infra
+        T_TF["/tf · /tf_static"]:::topic
+        HWC["hardware_check<br/><i>optional</i>"]:::node
+        RSP --> T_TF
+        HWC -.-> T_TRAJ
+        T_JS -.-> HWC
+        T_TEN -.-> HWC
+    end
 
-    CTRL -->|"pub"| T_TRAJ
-    T_TRAJ -->|"sub"| PTC
-    HWC -->|"pub (test only)"| T_TRAJ
-    PTC --> CM
-    CM <-->|"position cmds /<br/>joint feedback"| DX
-    CM --> JSB
-    JSB -->|"pub"| T_JS
-    T_JS -->|"sub"| CTRL
-    T_JS -->|"sub"| HWC
-
-    HX -->|"SPI/serial ADC<br/>(read_raw_adc)"| LC
-    LC -->|"pub"| T_TEN
-    T_TEN -->|"sub"| CTRL
-    T_TEN -->|"sub"| HWC
-
-    style absent fill:#fafafa,stroke:#bdbdbd,stroke-dasharray: 5 5
+    subgraph lane4["Sim-only (absent on hardware)"]
+        direction LR
+        X1["fish_agent"]:::absent
+        X2["fish_effort_controller"]:::absent
+        X3["tension_sensor_broadcaster"]:::absent
+        X4["MuJoCo / recorder"]:::absent
+    end

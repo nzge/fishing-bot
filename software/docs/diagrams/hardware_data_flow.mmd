@@ -1,24 +1,19 @@
-%% Hardware — physical cause-and-effect chain (below ROS layer)
+%% Hardware — physics chain (report layout: horizontal + feedback arc)
+%%{init: {'flowchart': {'nodeSpacing': 14, 'rankSpacing': 30, 'padding': 8, 'curve': 'basis'}}}%%
 
-flowchart TB
-    classDef hw fill:#fce4ec,stroke:#c62828
-    classDef sensor fill:#e3f2fd,stroke:#1565c0
-    classDef ctrl fill:#e8f5e9,stroke:#2e7d32
+flowchart LR
+    classDef hw fill:#fce4ec,stroke:#c62828,stroke-width:1.5px
+    classDef sensor fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px
+    classDef ctrl fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
 
-    FISH["Real fish / manual load<br/>on fishing line"]:::hw
-    LINE["Physical line"]:::hw
-    ROD["Rod tip + load cell mount"]:::hw
-    HX["HX711 ADC<br/>calibration_offset · calibration_scale"]:::sensor
-    LC["load_cell_node<br/>moving average · noise floor"]:::sensor
+    LOAD["line load / fish"]:::hw
+    HX["HX711"]:::sensor
+    LC["load_cell_node"]:::sensor
     CTRL["tension controller"]:::ctrl
-    PTC["position_trajectory_controller"]:::ctrl
-    DX["Dynamixel servos<br/>Joint_1 · Joint_2"]:::hw
+    PTC["position_traj_controller"]:::ctrl
+    DX["Dynamixel J1·J2"]:::hw
+    LINE["line tension"]:::hw
 
-    FISH --> LINE
-    LINE --> ROD
-    ROD --> HX
-    HX -->|"read_raw_adc()"| LC
-    LC -->|"FishingTension"| CTRL
-    CTRL -->|"JointTrajectory"| PTC
-    PTC --> DX
-    DX -->|"changes rod angle →<br/>line tension"| LINE
+    LOAD --> LINE --> HX --> LC -->|FishingTension| CTRL
+    CTRL -->|JointTrajectory| PTC --> DX
+    DX -.->|rod angle| LINE

@@ -1,65 +1,52 @@
-%% Fishing Robot — MuJoCo Simulation ROS 2 Graph
-%% Standalone diagram for reports. Also embedded in docs/ros2/simulation.md
-%% Render: https://mermaid.live  |  mmdc -i simulation_ros2_graph.mmd -o simulation_ros2_graph.svg
+%% Fishing Robot — MuJoCo Simulation ROS 2 Graph (report layout: wide lanes)
+%%{init: {'flowchart': {'nodeSpacing': 12, 'rankSpacing': 28, 'padding': 10, 'htmlLabels': true}}}%%
 
 flowchart TB
-    classDef node fill:#e8f4fc,stroke:#0b6e99,stroke-width:2px
-    classDef simOnly fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef ctrl fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    classDef infra fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    classDef node fill:#e8f4fc,stroke:#0b6e99,stroke-width:1.5px
+    classDef sim fill:#fff3e0,stroke:#e65100,stroke-width:1.5px
+    classDef ctrl fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px
+    classDef infra fill:#f3e5f5,stroke:#6a1b9a,stroke-width:1.5px
+    classDef topic fill:#fafafa,stroke:#757575,stroke-width:1px,font-size:11px
 
-    subgraph launch["bringup — robot.launch.py (use_sim:=true)"]
-        direction TB
+    subgraph lane1["Lane 1 · Disturbance (sim only)"]
+        direction LR
+        FISH["fish_agent<br/><i>planning</i>"]:::sim
+        T_FISH["/fish_effort_controller/commands"]:::topic
+        FEC["fish_effort_controller"]:::sim
+        MJ1["mujoco_ros2_control"]:::sim
+        FISH --> T_FISH --> FEC --> MJ1
     end
 
-    subgraph tf["Transform & Description"]
-        RSP["robot_state_publisher<br/><i>robot_state_publisher</i>"]:::infra
-    end
-
-    subgraph physics["MuJoCo + ros2_control"]
-        MJ["mujoco_ros2_control<br/>ros2_control_node<br/><i>hosts /controller_manager</i>"]:::simOnly
+    subgraph lane2["Lane 2 · Arm control loop"]
+        direction LR
+        CTRL["admittance / force_feedback<br/><i>control</i>"]:::ctrl
+        T_TRAJ["/position_trajectory_controller/joint_trajectory"]:::topic
+        PTC["position_trajectory_controller"]:::ctrl
+        MJ2["mujoco_ros2_control"]:::sim
         JSB["joint_state_broadcaster"]:::infra
-        PTC["position_trajectory_controller<br/><i>JointTrajectoryController</i>"]:::ctrl
-        FEC["fish_effort_controller<br/><i>ForwardCommandController</i>"]:::simOnly
-        TSB["tension_sensor_broadcaster<br/><i>ForceTorqueSensorBroadcaster</i>"]:::simOnly
+        T_JS["/joint_states"]:::topic
+        CTRL --> T_TRAJ --> PTC --> MJ2 --> JSB --> T_JS --> CTRL
     end
 
-    subgraph apps["Application nodes (ament_python)"]
-        CTRL["admittance_controller<br/>OR force_feedback_controller<br/><i>control</i>"]:::ctrl
-        LC["load_cell_node<br/><i>sensors — source:=sim_fts</i>"]:::node
-        FISH["fish_agent<br/><i>planning</i>"]:::simOnly
-        REC["recorder<br/><i>diagnostics — record:=true</i>"]:::node
+    subgraph lane3["Lane 3 · Tension sensing"]
+        direction LR
+        MJ3["mujoco_ros2_control"]:::sim
+        TSB["tension_sensor_broadcaster"]:::sim
+        T_WRENCH["/tension_sensor_broadcaster/wrench"]:::topic
+        LC["load_cell_node<br/><i>sim_fts</i>"]:::node
+        T_TEN["/fishing_arm/tension"]:::topic
+        MJ3 --> TSB --> T_WRENCH --> LC --> T_TEN --> CTRL
     end
 
-    subgraph topics["Topics (message types)"]
-        T_JS["/joint_states<br/>sensor_msgs/JointState"]
-        T_TRAJ["/position_trajectory_controller/joint_trajectory<br/>trajectory_msgs/JointTrajectory"]
-        T_TEN["/fishing_arm/tension<br/>interfaces/FishingTension"]
-        T_WRENCH["/tension_sensor_broadcaster/wrench<br/>geometry_msgs/WrenchStamped"]
-        T_FISH["/fish_effort_controller/commands<br/>std_msgs/Float64MultiArray"]
-        T_TF["/tf · /tf_static<br/>tf2_msgs/TFMessage"]
-        T_RD["/robot_description<br/>std_msgs/String"]
+    subgraph lane4["Lane 4 · TF & logging (optional)"]
+        direction LR
+        RSP["robot_state_publisher"]:::infra
+        T_TF["/tf · /tf_static"]:::topic
+        REC["recorder<br/><i>record:=true</i>"]:::node
+        RSP --> T_TF -.-> LC
+        T_JS -.-> REC
+        T_TEN -.-> REC
     end
 
-    RSP --> T_RD
-    RSP --> T_TF
-    T_TF -.->|"TF lookup<br/>rod_tip_link ↔ fish_link"| LC
-
-    FISH -->|"pub"| T_FISH
-    T_FISH -->|"sub"| FEC
-    FEC --> MJ
-    CTRL -->|"pub"| T_TRAJ
-    T_TRAJ -->|"sub"| PTC
-    PTC --> MJ
-    MJ --> JSB
-    JSB -->|"pub"| T_JS
-    T_JS -->|"sub"| CTRL
-    T_JS -->|"sub"| REC
-    MJ --> TSB
-    TSB -->|"pub"| T_WRENCH
-    T_WRENCH -->|"sub"| LC
-    LC -->|"pub"| T_TEN
-    T_TEN -->|"sub"| CTRL
-    T_TEN -->|"sub"| REC
-
-    MJ -.->|"steps MJCF<br/>fishing-robot_sim.xml"| MJ
+    MJ1 ~~~ MJ2
+    MJ2 ~~~ MJ3

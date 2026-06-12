@@ -1,37 +1,27 @@
-%% Fishing Robot — Package dependency & launch delegation graph
+%% Fishing Robot — Package architecture (report layout: horizontal)
+%%{init: {'flowchart': {'nodeSpacing': 16, 'rankSpacing': 24, 'padding': 8}}}%%
 
-flowchart TB
-    classDef cmake fill:#fff8e1,stroke:#f57f17
-    classDef python fill:#e3f2fd,stroke:#1565c0
-    classDef external fill:#eceff1,stroke:#607d8b
+flowchart LR
+    classDef cmake fill:#fff8e1,stroke:#f57f17,stroke-width:1.5px
+    classDef python fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px
+    classDef external fill:#eceff1,stroke:#607d8b,stroke-width:1.5px
 
-    BR["bringup<br/>ament_cmake<br/>robot.launch.py"]:::cmake
-    DESC["description<br/>ament_cmake<br/>URDF · MJCF · meshes"]:::cmake
-    IFACE["interfaces<br/>ament_cmake<br/>FishingTension.msg"]:::cmake
+    DESC["description<br/>URDF · MJCF"]:::cmake
+    BR["bringup<br/>robot.launch.py"]:::cmake
+    IFACE["interfaces<br/>FishingTension"]:::cmake
 
-    CTRL["control<br/>ament_python<br/>admittance · force_feedback"]:::python
-    SENS["sensors<br/>ament_python<br/>load_cell_publisher"]:::python
-    PLAN["planning<br/>ament_python<br/>fish_agent"]:::python
-    DIAG["diagnostics<br/>ament_python<br/>recorder · hardware_check"]:::python
+    CTRL["control"]:::python
+    SENS["sensors"]:::python
+    PLAN["planning"]:::python
+    DIAG["diagnostics"]:::python
 
+    CM["ros2_control host"]:::external
     RSP["robot_state_publisher"]:::external
-    CM["controller_manager /<br/>mujoco_ros2_control"]:::external
-    JTC["joint_trajectory_controller"]:::external
 
-    BR -->|"IncludeLaunchDescription"| CTRL
-    BR -->|"IncludeLaunchDescription"| SENS
-    BR -->|"IncludeLaunchDescription"| PLAN
-    BR -->|"IncludeLaunchDescription"| DIAG
-    BR -->|"xacro use_sim"| DESC
-    BR -->|"controllers.yaml<br/>params.yaml"| CM
-
-    CTRL --> IFACE
-    SENS --> IFACE
-    DIAG --> IFACE
-
-    CTRL -->|"JointTrajectory"| CM
-    SENS -->|"FishingTension"| CTRL
-    PLAN -->|"Float64MultiArray"| CM
-
-    BR --> RSP
-    BR --> CM
+    DESC --> BR
+    BR --> CTRL & SENS & PLAN & DIAG
+    BR --> CM & RSP
+    CTRL & SENS & DIAG --> IFACE
+    SENS -->|tension| CTRL
+    PLAN -->|fish effort| CM
+    CTRL -->|trajectory| CM
