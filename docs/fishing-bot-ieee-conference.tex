@@ -1,0 +1,287 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{url}
+\usepackage{float}
+
+\begin{document}
+
+\title{Autonomous Robotic Fishing Line Tension Regulation Using Admittance Control}
+
+\author{\IEEEauthorblockN{Nathan Ge}
+\IEEEauthorblockA{\textit{Dept. of MAE} \\
+\textit{UCLA}\\
+Los Angeles, CA, USA}
+\and
+\IEEEauthorblockN{Chaoyi Hu}
+\IEEEauthorblockA{\textit{Dept. of MAE} \\
+\textit{UCLA}\\
+Los Angeles, CA, USA}
+\and
+\IEEEauthorblockN{Julie Nguyen}
+\IEEEauthorblockA{\textit{Dept. of MAE} \\
+\textit{UCLA}\\
+Los Angeles, CA, USA}
+\and
+\IEEEauthorblockN{Xiang Zhou}
+\IEEEauthorblockA{\textit{Dept. of MAE} \\
+\textit{UCLA}\\
+Los Angeles, CA, USA}
+}
+
+\maketitle
+
+\begin{abstract}
+This project explores the potential of autonomous robotic fishing framework. To carry the problem into an engineering lens to build a technical framework around, we centered our robot’s function on the fishing line tension aspect of the fishing pipeline which is modelled as a force control problem. Tension regulation is fundamentally characterized by the balance of overpulling which risks the line snapping and underpulling which can lose the fish. Good anglers will respond by dynamically adjusting the orientation of the rod with intuition and feel, keeping the line tension in a safe zone. The robot will perform this balancing act intelligently with sensor feedback and precise motor control.
+\end{abstract}
+
+\begin{IEEEkeywords}
+tension regulation, admittance control, robotic fishing, ROS2, force control
+\end{IEEEkeywords}
+
+\section{Overview}
+This project explores the potential of autonomous robotic fishing framework. To carry the problem into an engineering lens to build a technical framework around, we centered our robot’s function on the fishing line tension aspect of the fishing pipeline which is modelled as a force control problem. Tension regulation is fundamentally characterized by the balance of overpulling which risks the line snapping and underpulling which can lose the fish. Good anglers will respond by dynamically adjusting the orientation of the rod with intuition and feel, keeping the line tension in a safe zone. The robot will perform this balancing act intelligently with sensor feedback and precise motor control.
+
+Similar robotic fishing systems have been explored in previous projects. AlYaseen et al.\ developed an autonomous fishing rod that can detect fish bites, pull the line, and stop the motor when high resistance is detected to avoid cutting the line~\cite{b1}. This is closely related to our project because both systems use the fishing-line force as an important feedback signal. Another robotic fishing pole project used an Arduino-controlled mechanical system to cast and reel automatically through smartphone or computer control~\cite{b2}. These examples show that fishing is a suitable application for automation and robotic actuation.
+
+Fishing has also been studied as a force-feedback and haptic simulation problem. The Stanford CHARM Lab developed a haptic fishing robot/simulator to create realistic force feedback for the user~\cite{b3}. This supports the motivation of our project because the key part of the fishing experience is not only moving the rod, but also reacting to the changing resistance from the fish. Our project extends this idea by using a physical robotic rod and an admittance controller to convert measured tension into rod motion.
+
+The resultant robot platform is a 1 DOF robotic fishing system to control line tension following the hook set fishing phase. The robot employs sensor-based feedback control to manage tension regulation and disturbance rejection. The tension in the fishing line is detected by a load sensor, and the robot controls the rod pitch angle based on the error of the detected tension. The control system logic was modeled and solidified in simulation as a tethered robot in which the fish-like load is an external disturbance via the line. The project also creates a foundation for future work on more realistic multi-DOF fishing robots or autonomous fishing mechanisms.
+
+\section{Control Objectives}
+To carry the problem into an engineering lens to build a technical framework around, fishing can be characterized by three discrete modes: fish discovery (pre hook-set), tension regulation (post hook-set), and reeling.
+
+Fish discovery describes the phase in which the fishing line is ‘cold’ and waiting for a fish to bite. The controller looks for a disturbance signal to indicate fish interest. A jigging action that mimics live bait may be used in this phase to increase fish hooking probability. This phase also includes holes/gaps in tension sensing caused by a fish already hooked on that escapes the jurisdiction of the control domain. Algorithms/action routines may be employed to restore control over the fish.
+
+Looking past fish discovery is the tension regulation stage, the project’s primary control objective, which centers on maintaining tension through the fishing line. The general control structure involves a physical load sensor that approximates the force through the line, and control algorithms that take this information to modulate the tension estimation data. Tension accommodation lends itself naturally to admittance control or some sort of force regulation control methodology, both of which became primary control methods of exploration for this project.
+\begin{itemize}
+\item Tension regulation
+\item Virtual mass-spring-damper (MSD) admittance loops
+\item Highly stochastic loads handling
+\end{itemize}
+
+An additional reeling component may be added to successfully bring the fish to the desired endpoint. Reeling will also require additional hardware to pull the string inward. This would complicate the load sensing packaging and add mechanical complexity that comes with a reeling system. This particular system was not heavily pursued in our research, leaving it an avenue of future development.
+
+\section{Methods}
+
+\subsection{Hardware}
+Image of physical robot:
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_physical_robot.png}}
+\caption{Physical robot.}
+\label{fig:physical_robot}
+\end{figure}
+
+Wiring diagram:
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_wiring_diagram.png}}
+\caption{Wiring diagram.}
+\label{fig:wiring_diagram}
+\end{figure}
+
+\subsection{Codebase and Simulation}
+Additional details can be found in https://nzge.github.io/fishing-bot/
+
+Building out the ROS2 codebase such that the control logic interacts seamlessly with Mujoco simulation and hardware control
+
+\begin{table}[H]
+\caption{Table: Package Descriptions}
+\begin{center}
+\begin{tabular}{|l|p{5.5cm}|}
+\hline
+\textbf{Package} & \textbf{Description} \\
+\hline
+Bringup & Launch configuration. Can launch simulation or hardware control based on preference. \\
+\hline
+Description & Mesh and model descriptors. \\
+\hline
+Control & Tension control package. \\
+\hline
+Planning & Used to control randomness of 'fish' behavior. Can be thought of as a fish agent (our disturbance). \\
+\hline
+Sensors & Sensor readings and publishing. \\
+\hline
+Interfaces & Develop protocol for inter-node communication. \\
+\hline
+\end{tabular}
+\label{tab:packages}
+\end{center}
+\end{table}
+
+\subsection{Node Architecture}
+The behavior of the fish is simulated as repeatable disturbance for controlled testing.
+
+The controller was tested in a repeatable way with a ROS2 control structure and MuJoCo simulation.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_node_architecture.png}}
+\caption{Node architecture.}
+\label{fig:node_architecture}
+\end{figure}
+
+\subsection{Mathematical Formulation}
+Control Diagram
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_control_diagram.png}}
+\caption{Control diagram.}
+\label{fig:control_diagram}
+\end{figure}
+
+High level Admittance control
+
+The system utilizes a virtual mass-spring-damper system to
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_admittance_control.png}}
+\caption{High-level admittance control.}
+\label{fig:admittance_control}
+\end{figure}
+
+Low level PI control on theta position commands
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_pi_control.png}}
+\caption{Low-level PI control on theta position commands.}
+\label{fig:pi_control}
+\end{figure}
+
+Inverse and forward Kinematics
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_kinematics.png}}
+\caption{Inverse and forward kinematics.}
+\label{fig:kinematics}
+\end{figure}
+
+\section{Results}
+
+\subsection{Error Assessment}
+
+\subsubsection{1. Engagement and safety logic}
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_engagement_supervisor.png}}
+\caption{Figure 1.1. Engagement and recovery supervisor state during the hardware trial.}
+\label{fig:engagement_supervisor}
+\end{figure}
+
+The engagement supervisor was also evaluated during the hardware trial. Before the line tension reached the bite-trigger condition, the controller remained in the IDLE state and commanded zero PWM, preventing the motor from responding to sensor noise or small disturbances. In this implementation, the controller was activated only when the measured tension exceeded 0.8 N for 0.10 s, representing the initial pulling event after a fish is hooked. During active control, a low-tension condition was detected when the measured tension stayed below 1.0 N. If this condition lasted for more than 1.8 s, the supervisor entered the RECOVERY state to avoid continuously pulling against a slack line. Once the measured tension recovered above 2.0 N, the controller returned to active control. The supervisor state plot shows this sequence, with transitions from IDLE to CONTROL, then to RECOVERY, and finally back to CONTROL after the tension recovered.
+
+\subsubsection{2. Dynamic Controller Response}
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_tension_dynamic.png}}
+\caption{Figure 2.1. Measured tension response during dynamic regulation.}
+\label{fig:tension_dynamic}
+\end{figure}
+
+The dynamic controller response was evaluated using a trial with larger variations in the applied line tension. Fig. 2.1 shows the measured tension signal used as feedback by the controller. Since the line was pulled manually, the sharp peaks in the tension curve should not be interpreted as a standardized disturbance input. The tension signal also depends on factors such as pulling speed, pulling direction, line slack, and the contact condition of the load cell. Therefore, this figure is mainly used to show the feedback signal received by the controller during a more dynamic pulling condition, rather than to evaluate the tension curve alone.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_region_switching.png}}
+\caption{Figure 2.2. Controller region switching during dynamic regulation.}
+\label{fig:region_switching}
+\end{figure}
+
+The controller response to these tension changes is shown more clearly in Fig. 2.2. During the trial, the controller compares the measured tension with the target tension and the deadband, then selects the corresponding control region. When the tension rises above the desired range, the controller switches to the HIGH region, which corresponds to a release action to reduce excessive line tension. When the tension drops below the desired range, the controller returns to the LOW region, where the motor pulls back to recover line tension. The repeated LOW/HIGH transitions show that the controller is actively responding to the sign of the tension error rather than applying a fixed motor command.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_pwm_command.png}}
+\caption{Figure 2.3. PWM command and control components during dynamic regulation.}
+\label{fig:pwm_command}
+\end{figure}
+
+Fig. 2.3 shows how these feedback decisions are converted into actuator commands. The blue curve is the final PWM command sent to the Dynamixel motor, while the orange and green curves show two major contributing terms: the high-tension release feedforward and the position compensation term. The zero-PWM line separates the two actuation directions. In this implementation, positive PWM commands are associated with release actions during high-tension events, while negative PWM commands are associated with pull-back corrections when the tension becomes too low.
+
+The positive PWM pulses in Fig. 2.3 appears when the controller enters the HIGH region, showing that the controller is actively trying to release the rod and reduce excessive tension. After the tension decreases, the final PWM command becomes negative, which corresponds to the LOW-region pull-back action. The position compensation term changes more slowly because it depends mainly on the rod position rather than the instantaneous tension peak. As a result, the final PWM command is the combined output of tension-based correction and position-based compensation.
+
+Overall, the agreement between Fig. 2.1, Fig. 2.2, and Fig. 2.3 shows the intended closed-loop behavior of the controller. Fig. 2.1 provides the measured tension feedback, Fig. 2.2 shows the corresponding HIGH/LOW region selection based on the tension error, and Fig. 2.3 shows the motor command generated from this feedback logic. Together, these results indicate that the robot actively responds to changes in line tension by switching control modes and commanding the actuator in the expected direction.
+
+\subsubsection{3. Post-Transient Regulation Performance}
+The post-transient regulation performance was evaluated using a separate hardware trial. This trial should not be interpreted as a standard step-response test, since the external line tension was generated manually rather than by a fixed and repeatable disturbance source. In this hardware setup, the measured tension depends not only on the rod angle, but also on the pulling force applied by hand, line slack, load-cell contact, and motor friction. Therefore, the response is expected to be slower and less uniform than a pure position-control response. For this reason, the later portion of the trial was used to evaluate whether the controller could maintain the line tension near the target once the large engagement and correction motions had passed.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_tension_post_transient.png}}
+\caption{Figure 3.1. Measured tension response after the initial engagement transient.}
+\label{fig:tension_post_transient}
+\end{figure}
+
+Fig. 3.1 shows the measured tension response during this trial. The target tension was set to 3.5 N. During the initial engagement phase, the measured tension contains a large transient peak, which is mainly caused by the initial line engagement and manual pulling input. After this transient and the following correction motions, the controller brings the measured tension back toward the target range. In the later part of the trial, the tension remains close to the desired value, showing that the controller can maintain the line tension near the target under a relatively stable pulling condition.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_tension_error.png}}
+\caption{Figure 3.2. Tension regulation error after the initial transient.}
+\label{fig:tension_error}
+\end{figure}
+
+The tension regulation error is shown in Fig. 3.2. Instead of treating the full response as a standard settling-time test, the final portion of the trial was used as a post-transient evaluation window. Over this window, the measured tension had an average value of 3.52 N compared with the 3.5 N target. The mean absolute tension error was 0.025 N, and the RMSE was 0.036 N, corresponding to approximately 0.72\% and 1.03\% of the target tension, respectively. These values show that once the large transient response had passed, the controller was able to regulate the line tension with a small remaining error.
+
+\begin{figure}[H]
+\centerline{\includegraphics[width=0.5\linewidth]{fig_joint_angle.png}}
+\caption{Figure 3.3. Rod joint angle during post-transient tension regulation.}
+\label{fig:joint_angle}
+\end{figure}
+
+Fig. 3.3 shows the rod joint angle during the same trial, reported in degrees. The joint angle provides additional context for the tension regulation behavior shown in Fig. 3.1 and Fig. 3.2. During the initial engagement and correction phase, the tension error is relatively large, and the actuator changes the rod angle to establish line tension and reduce the error. As the measured tension approaches the target in the later part of the trial, the tension error becomes smaller and the rod joint angle also remains near a stable operating posture. This trend indicates that the actuator adjustment is consistent with the reduction of the tension error. However, the joint angle is not expected to match the tension error exactly, since the measured tension also depends on the manual pulling input, line slack, load-cell contact, and friction. Therefore, Fig. 3.3 is used to show the actuator motion and final rod posture, while Fig. 3.2 remains the main performance metric for tension regulation.
+
+\section{Current Challenges}
+Although the hardware test shows that the controller can regulate the line tension, the current setup still has several practical limitations. One major limitation is that the external line tension was applied by hand during the experiment rather than generated by a standardized disturbance source. This made the test closer to an actual fishing interaction, but it also means that the measured tension curve is affected by the pulling speed, pulling direction, and line slack. As a result, some sharp peaks and sudden drops in the tension signal should be interpreted as part of the manual interaction with the line, instead of being attributed to the controller alone. Therefore, the hardware results are mainly used to demonstrate the controller behavior under realistic manual interaction rather than to provide a standardized disturbance-response benchmark.
+
+Another important limitation comes from the indirect relationship between motor motion and measured line tension. Unlike a pure position-control task, where the motor angle can be measured and controlled directly, the line tension depends on several physical factors between the actuator and the sensor. For example, line slack, fishing-line compliance, load-cell contact condition, and friction in the mechanism can all affect the measured tension even when the motor command is the same. As a result, small motor motions do not always produce an immediate or proportional change in tension.
+
+This limitation is also related to the PWM-based actuation used in the current implementation. Since the motor is commanded through PWM rather than a precise torque or position controller, small corrective commands may need to overcome static friction, gravity, and mechanical resistance before visible rod motion occurs. This can make the actuator response less smooth during fine tension corrections. Therefore, the tension regulation result should be understood as the combined behavior of the controller, motor actuation, fishing line, and load-cell measurement, rather than as a direct one-to-one mapping between joint angle and tension.
+
+\section{Future Work}
+Upon further understanding of the problem, it became clear that this apparently simple tension management task has incredibly deep and rich control ideas embedded beneath the surface. This led to a deep dive of potential control tools that may bolster the robustness of the control system.
+
+\subsection{Algorithms}
+First let's consider extensive ideas on the algorithmic front. For one, if we consider taking the 1DOF control problem to the more realistic 2DOF planarized case, nonlinear coupling dynamics and orthogonal subspaces appear. But less obvious is added complication regarding sensing capabilities. Considering our limited 1D load sensing framework, we will require sensor fusion/interpretation techniques to ensure optimal tension estimation in the higher dimensional space (2D). In other words, instead of a direct linear force/tension estimation relation for the 1DOF case, we need to be aware of a more precise tension vector to perform control feedback on. If we use load sensor info and kinematic state via encoders we may employ kinematic variation/dithering to back out the tension vector estimation. But if we decide to use joint torques as well, a sensor fusion technique such as an extended kalman filter may be necessary. Furthermore, the concept of hybrid control may come into play to allow admittance in the tension management force adaptive axis and rigid positional control in perpendicular axes.
+
+Another crucial facet of the control problem is state switching capability. Discrete states are naturally embedded within the fishing control problem, and makes the problem incredibly control rich. The transition from fish searching to hook set, or switching from having fish to losing tension are both examples of discrete switching behavior. The problem can be summarized as this: how do we ensure stable and robust discrete state switching capability? A robust Finite State Machine (FSM) must be prescribed. The current FSM implementation uses basic force thresholding that induces highly volatile “chatter” behavior, or rapid, unstable, and unnecessary state switching behavior. A few stability insurance techniques come to mind to augment our FSM. We can first employ common FSM techniques, two of which being hysteresis and debouncing. Hysteresis may help better characterize switching conditions by enforcing anisotropic force thresholds for entering and exiting a state. Debouncing adds time-based thresholding/conditioning to limit false/rapid triggering.
+
+Another region of focus in the FSM is the transition points themself. We could apply smoothing filters to help initiate bumpless transfer and eliminate unwanted transient spikes in control effort. A crucial function of the controller is to also place the system under regions of controllability. In this particular problem, we want to avoid fish line snapping or losing tension control on the fishing being hooked onto the line. We can use tension break detection (rate of force change) and accompanying funnel synthesis to bound the tracking error control behavior. The idea of funnel synthesis can be applied to the immediate high error case where tension is suddenly lost. Funnel synthesis drops the robot controller into a safe, heavily damped recovery ‘funnel’ in case of line break preventing the robotic arm from violently whipping backward and breaking motors
+
+This funnel synthesis concept can also be applied for control regain.
+
+Additionally, the state behaviors themselves have to be tended to. If admittance control is being used we can use gain scheduling to customize dynamic behaviors specific to a state's concerns.
+
+AI has relevance to control enhancement here as well. We can augment the control loop with an adaptive neural network feedforward term that learns the stochastic frequency of the fish's pulling behavior, effectively predicting the required q\_d before the tension error grows too large. Our preexisting sim-real frameworks can also be set up to build a Sim-to-real training pipeline. We use our simulation framework as an AI training tool to optimize fish tensioning behavior in the real robot. This can be primarily achieved in two ways: either we use direct RL methods to build a neural-based controller, or employ layered RL to tune controller parameters of a pre-designed control framework. Our simulation pipeline can also simply be used for adaptive control tuning without AI.
+
+\subsection{Noise reduction and filtering techniques}
+To properly target fishes for catching in an unpredictable open ocean scenario, we may require probabilistic state estimation (HMM, Bayesian filtering). This concept is often important in partial observability/limited info scenarios such as real world RL training cases. Frequency and derivative of the force may be used to distinguish between fake disturbances (boat rocking, snag on seaweed) or an actual fish. However, in the case the environment we are operating in (in our scenario it would be the ocean or a body of water) has no partial observability or obstruction concerns, we may simply bypass the problem state estimation seeks to solve by using computer vision to distinguish between a fish and ignorable entities.
+
+\subsection{Hardware}
+A few hardware-specific augmentations could be worth studying in the future, to observe their impact on tension management characteristics (transient behaviors, error attenuation, control effort).
+
+The introduction of a redundantly actuated serial joint is one such augmentation with significant control implications. The idea was initially inspired by a desire to emulate rod compliance with active control capability. Then, the larger control picture became clear. The most practical use of the redundant serial joint is the implementation of a macro-micro manipulator structure. The lower heavy base joint handles low-frequency, high-amplitude positioning (like tracking boat's movement). A smaller, redundantly actuated serial joint near the tip can be tuned with a much higher control loop frequency to handle high-frequency stochastic disturbances. As a result, we receive the benefit of inertial decoupling: we get improved torque efficiency as jerky movements are handled by the actuator near the tip and doesn’t cause the heavy base motor downstream to respond unnecessarily and move high inertial loads.
+
+The added joint also opens the possibility of null space optimization with the introduction of infinite joint configurations. This allows us to initiate secondary optimization objectives besides tension management such as torque minimization.
+
+The secondary joint can also be treated as a dynamic impedance shaping element, with the redundant motor acting as a dynamically tunable physical stiffness unit that adheres to control needs.
+
+Passive structures are another potential angle for improving dynamic performance. A compliant segment added to the end of the rod can mechanical LPF, dealing with incredibly jerky fish motion in true fishing scenarios as well as improve bumpless transfer stabilization during state transitions to reduce risky torque spikes.
+
+The last hardware-based project enhancement has less to do with the robotic arm itself, but more so about creating an improved real-world testing rig. The idea is to create an actuatable object to mimic a fish that has planarized movement capabilities to perform varied experiments on our hardware system and its accompanying controller design
+
+\subsection{Practical additions}
+Other considerations that would bring the automated fishing system closer to a ‘market-available’ product include an actuated hooking system and a tensioning reel mechanism. This would come with its own host of hardware implementation and control framework problems.
+
+\section*{References}
+
+\begin{thebibliography}{00}
+\bibitem{b1} M. AlYaseen, O. Alajmi, N. Al-Attal, and A. Al-Saleh, “Autonomous Fishing Rod,” College of Engineering and Applied Sciences, American University of Kuwait, Kuwait, 2019.
+\bibitem{b2} J. Cook, “Robotic Fishing Pole Casts and Reels Automatically,” Hackster.io, 2019. [Online]. Available: Hackster.io.
+\bibitem{b3} Stanford CHARM Lab, “Haptic Fishing Robot,” Stanford University, 2024. [Online]. Available: Stanford CHARM Lab.
+\bibitem{b4} Lai, G., Zhou, S., Yang, W., Wang, X., \& Wang, F. (2023). Prescribed fixed-time adaptive neural control for manipulators with uncertain dynamics and actuator failures. Mathematics, 11(13), 2925. https://doi.org/10.3390/math11132925 Cited by: 4
+\end{thebibliography}
+
+\end{document}
