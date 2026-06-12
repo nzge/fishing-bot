@@ -20,7 +20,7 @@ class PositionTestPublisher(Node):
         
         # Operational limits for safety profile
         self.max_amplitude = 0.5  # radians (~28 degrees)
-        self.frequency = 0.2     # Hz (slow cycles to preserve internal motor gears)
+        self.frequency = 0.2     # Hz (slow cycles ttimertimero preserve internal motor gears)
         
         self.get_logger().info("Dynamixel position validation node initialized.")
 
