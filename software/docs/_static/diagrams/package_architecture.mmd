@@ -1,0 +1,37 @@
+%% Fishing Robot — Package dependency & launch delegation graph
+
+flowchart TB
+    classDef cmake fill:#fff8e1,stroke:#f57f17
+    classDef python fill:#e3f2fd,stroke:#1565c0
+    classDef external fill:#eceff1,stroke:#607d8b
+
+    BR["bringup<br/>ament_cmake<br/>robot.launch.py"]:::cmake
+    DESC["description<br/>ament_cmake<br/>URDF · MJCF · meshes"]:::cmake
+    IFACE["interfaces<br/>ament_cmake<br/>FishingTension.msg"]:::cmake
+
+    CTRL["control<br/>ament_python<br/>admittance · force_feedback"]:::python
+    SENS["sensors<br/>ament_python<br/>load_cell_publisher"]:::python
+    PLAN["planning<br/>ament_python<br/>fish_agent"]:::python
+    DIAG["diagnostics<br/>ament_python<br/>recorder · hardware_check"]:::python
+
+    RSP["robot_state_publisher"]:::external
+    CM["controller_manager /<br/>mujoco_ros2_control"]:::external
+    JTC["joint_trajectory_controller"]:::external
+
+    BR -->|"IncludeLaunchDescription"| CTRL
+    BR -->|"IncludeLaunchDescription"| SENS
+    BR -->|"IncludeLaunchDescription"| PLAN
+    BR -->|"IncludeLaunchDescription"| DIAG
+    BR -->|"xacro use_sim"| DESC
+    BR -->|"controllers.yaml<br/>params.yaml"| CM
+
+    CTRL --> IFACE
+    SENS --> IFACE
+    DIAG --> IFACE
+
+    CTRL -->|"JointTrajectory"| CM
+    SENS -->|"FishingTension"| CTRL
+    PLAN -->|"Float64MultiArray"| CM
+
+    BR --> RSP
+    BR --> CM

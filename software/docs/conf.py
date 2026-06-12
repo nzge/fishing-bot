@@ -55,6 +55,8 @@ exclude_patterns = [
     "**/.venv",
     "requirements.pip",
     "README.md",
+    "_generated/ros_graph/fragments",
+    "_generated/ros_graph/diagrams.md",
 ]
 
 source_suffix = {
@@ -150,12 +152,18 @@ mermaid_version = "10.9.1"
 # Workspace introspection: regenerate the package reference on manual build.
 # --------------------------------------------------------------------------- #
 def _run_ros_generator(app):  # noqa: ANN001 - Sphinx app
-    from gen_ros_pages import generate
+    from gen_ros_pages import generate as gen_packages
+    from gen_ros_graph import generate as gen_graph
 
-    packages = generate(SRC_DIR, GENERATED_DIR / "reference")
-    app.builder.info(
-        f"[gen_ros_pages] regenerated reference for {len(packages)} packages"
-    ) if hasattr(app.builder, "info") else None
+    packages = gen_packages(SRC_DIR, GENERATED_DIR / "reference")
+    nodes = gen_graph(SRC_DIR, DOCS_DIR, GENERATED_DIR / "ros_graph")
+    if hasattr(app.builder, "info"):
+        app.builder.info(
+            f"[gen_ros_pages] regenerated reference for {len(packages)} packages"
+        )
+        app.builder.info(
+            f"[gen_ros_graph] indexed {len(nodes)} ROS nodes + diagram assets"
+        )
 
 
 def setup(app):  # noqa: ANN001, ANN201 - Sphinx extension hook

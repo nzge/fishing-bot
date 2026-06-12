@@ -1,0 +1,22 @@
+%% Fishing Robot — Closed-loop tension control (both sim and hardware)
+
+flowchart LR
+    classDef sense fill:#e3f2fd,stroke:#1565c0
+    classDef decide fill:#e8f5e9,stroke:#2e7d32
+    classDef act fill:#fce4ec,stroke:#c62828
+
+    DIST["Disturbance<br/><i>fish (sim) or<br/>real fish (hw)</i>"]:::act
+    LINE["Fishing line<br/><i>spring + damping</i>"]
+    ARM["2-DOF arm<br/>Joint_1 · Joint_2"]:::act
+
+    LC["load_cell_node<br/>FishingTension"]:::sense
+    CTRL["Tension controller<br/>MONITOR → HOOK_SET → REGULATE"]:::decide
+    PTC["position_trajectory_controller"]:::act
+
+    DIST --> LINE
+    LINE -->|"tension force"| ARM
+    ARM -->|"rod tip strain"| LC
+    LC -->|"/fishing_arm/tension"| CTRL
+    CTRL -->|"/position_trajectory_controller/joint_trajectory"| PTC
+    PTC -->|"position cmd"| ARM
+    ARM -.->|"/joint_states feedback"| CTRL

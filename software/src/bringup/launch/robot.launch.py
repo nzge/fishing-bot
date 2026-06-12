@@ -41,11 +41,22 @@ def generate_launch_description():
         description='Capture diagnostics plots + animation of the run (sim only)')
 
     # Bring-up self-test: open-loop motor + sensor function checks. Disables the
-    # admittance loop so nothing competes with the test commands.
+    # tension controller so nothing competes with the test commands.
     hardware_check = LaunchConfiguration('hardware_check')
     hardware_check_arg = DeclareLaunchArgument(
         'hardware_check', default_value='false',
         description='Run the motor/sensor bring-up self-test, then shut down')
+
+    # Tension controller selection: Julie admittance or Chaoyi force feedback.
+    controller_type = LaunchConfiguration('controller_type')
+    controller_type_arg = DeclareLaunchArgument(
+        'controller_type',
+        default_value='admittance',
+        description=(
+            'Tension controller: admittance (Julie), '
+            'force_feedback (Chaoyi), or none'
+        ),
+    )
 
     # 2. Package shares.
     description_pkg = FindPackageShare('description')
@@ -129,10 +140,11 @@ def generate_launch_description():
 
     # 7. Delegation Pattern: each application layer comes from its own package's
     #    launch file rather than being re-declared inline here.
-    #    The admittance loop is suppressed during the bring-up self-test.
+    #    The tension controller is suppressed during the bring-up self-test.
     control_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([control_pkg, 'launch', 'control.launch.py'])),
+        launch_arguments={'controller_type': controller_type}.items(),
         condition=UnlessCondition(hardware_check),
     )
     # The load cell runs in both modes; only its data source changes. On hardware
@@ -191,6 +203,7 @@ def generate_launch_description():
         run_duration_arg,
         record_arg,
         hardware_check_arg,
+        controller_type_arg,
         shutdown_timer,
         robot_state_pub_node,
         controller_manager_node,

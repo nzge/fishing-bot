@@ -1,45 +1,25 @@
 # Architecture Overview
 
 The stack is built around a **single sim-to-real switch** (`use_sim`). The same
-controllers, application nodes and topics run in both modes; only the hardware
-interface and the data sources change.
+application nodes and topic *names* run in both modes; the hardware plugin,
+optional controllers, and tension data source change.
 
-## System diagram
+This page is the **navigation hub**. For exhaustive detail, follow the links below.
 
-```{mermaid}
-flowchart TB
-    subgraph bringup_pkg["bringup &mdash; robot.launch.py"]
-        RSP[robot_state_publisher]
-        CM["controller_manager<br/>(real) / mujoco_ros2_control (sim)"]
-        Spawners["joint_state_broadcaster<br/>position_trajectory_controller<br/>fish_effort_controller (sim)<br/>tension_sensor_broadcaster (sim)"]
-    end
+## Start here
 
-    subgraph apps["Application packages"]
-        CTRL["control<br/>admittance_node"]
-        SENS["sensors<br/>load_cell_publisher"]
-        PLAN["planning<br/>fish_agent (sim)"]
-        DIAG["diagnostics<br/>recorder / hardware_check"]
-    end
+| I want to… | Go to |
+| --- | --- |
+| Understand each Python package in depth | {doc}`packages/index` |
+| See all ROS 2 nodes & topics (sim vs HW) | {doc}`ros2/index` |
+| Download diagrams for my report | {doc}`ros2/diagram_exports` |
+| Look up launch args / YAML params | {doc}`_generated/reference/index` |
+| Read Python class/function docs | {doc}`_generated/reference/api` |
+| Build and run the stack | {doc}`getting_started` |
 
-    subgraph desc["description"]
-        URDF["fishing-robot.urdf.xacro"]
-        MJCF["fishing-robot_sim.xml (MJCF)"]
-    end
+## System context
 
-    subgraph ifaces["interfaces"]
-        MSG["FishingTension.msg"]
-    end
-
-    URDF --> RSP
-    URDF --> CM
-    CM --> Spawners
-    bringup_pkg --> CTRL
-    bringup_pkg --> SENS
-    bringup_pkg --> PLAN
-    bringup_pkg --> DIAG
-    MSG --> CTRL
-    MSG --> SENS
-    MSG --> DIAG
+```{include} _generated/ros_graph/fragments/package_architecture.md
 ```
 
 ## The sim-to-real switch
@@ -61,13 +41,47 @@ it:
 * - Controller host
   - MuJoCo's bundled `ros2_control_node`
   - Standalone `controller_manager`
+* - Extra ros2_control
+  - `fish_effort_controller`, `tension_sensor_broadcaster`
+  - *(none beyond arm controllers)*
 * - Tension source
-  - MuJoCo FTS wrench → `sim_fts`
-  - HX711 load cell → `hardware`
+  - MuJoCo line stretch model (+ FTS fallback)
+  - HX711 load cell
 * - Disturbance
-  - virtual `fish_agent`
-  - real fish 🐟
+  - `planning/fish_agent`
+  - Real fish / manual load
+* - Sim-only URDF
+  - `fish_swim` joint, `tension_sensor` FTS
+  - Omitted from HW URDF
 ```
+
+Full branching logic: {doc}`packages/bringup`.
+
+## Closed-loop control
+
+Both modes implement the same ROS-level tension regulation loop:
+
+```{include} _generated/ros_graph/fragments/control_loop.md
+```
+
+Controller internals (state machine, admittance vs force-feedback):
+{doc}`packages/control`.
+
+## ROS 2 graphs at a glance
+
+### Simulation
+
+```{include} _generated/ros_graph/fragments/simulation_ros2_graph.md
+```
+
+Detailed node/topic tables: {doc}`ros2/simulation`.
+
+### Hardware
+
+```{include} _generated/ros_graph/fragments/hardware_ros2_graph.md
+```
+
+Detailed node/topic tables: {doc}`ros2/hardware`.
 
 ## Packages at a glance
 
@@ -78,28 +92,61 @@ it:
 * - Package
   - Build type
   - Role
-* - `bringup`
+* - {doc}`packages/bringup`
   - ament_cmake
-  - Top-level launch orchestration, controller config (`controllers.yaml`, `params.yaml`).
-* - `control`
+  - Top-level launch orchestration, controller config.
+* - {doc}`packages/control`
   - ament_python
-  - Admittance controller that maps measured tension to motion.
-* - `sensors`
+  - Admittance & force-feedback tension controllers.
+* - {doc}`packages/sensors`
   - ament_python
-  - Publishes line tension from the load cell (hardware) or MuJoCo FTS (sim).
-* - `planning`
+  - `FishingTension` publisher (HX711 or sim stretch model).
+* - {doc}`packages/planning`
   - ament_python
-  - Virtual "fish" disturbance agent for simulation.
-* - `diagnostics`
+  - Virtual fish disturbance (**sim only**).
+* - {doc}`packages/diagnostics`
   - ament_python
-  - Run recorder (plots + animation) and a motor/sensor bring-up self-test.
-* - `description`
+  - Run recorder + hardware bring-up self-test.
+* - {doc}`packages/description`
   - ament_cmake
-  - URDF/xacro, MuJoCo MJCF and STL meshes.
-* - `interfaces`
+  - URDF/xacro, MuJoCo MJCF, STL meshes.
+* - {doc}`packages/interfaces`
   - ament_cmake
-  - Custom messages (`FishingTension.msg`).
+  - `FishingTension.msg`.
 ```
 
-For the full, always-up-to-date detail on each package — executables, launch
-arguments, parameters and message fields — see the {doc}`_generated/reference/index`.
+## Layered architecture
+
+```{mermaid}
+flowchart TB
+    subgraph L0["Layer 0 — Physical"]
+        SIM["MuJoCo physics + tendon"]
+        HW["Dynamixel + HX711"]
+    end
+    subgraph L1["Layer 1 — ros2_control"]
+        CM["controller_manager / mujoco_ros2_control"]
+        CTRL["joint_state_broadcaster · position_trajectory_controller"]
+        SIMCTRL["fish_effort · tension_sensor (sim)"]
+    end
+    subgraph L2["Layer 2 — Application (Python)"]
+        APP["control · sensors · planning · diagnostics"]
+    end
+    subgraph L3["Layer 3 — Orchestration"]
+        BR["bringup/robot.launch.py"]
+    end
+    L0 --> L1
+    L1 --> L2
+    L3 --> L1
+    L3 --> L2
+```
+
+## Data-flow summary
+
+| Signal | Sim origin | HW origin | Consumer(s) |
+| --- | --- | --- | --- |
+| Joint positions | MuJoCo → `joint_state_broadcaster` | Dynamixel encoders | `control`, `diagnostics` |
+| Line tension | Stretch model / FTS → `load_cell_node` | HX711 → `load_cell_node` | `control`, `diagnostics` |
+| Joint commands | `control` → `position_trajectory_controller` | same | MuJoCo / Dynamixel |
+| Fish force | `fish_agent` → `fish_effort_controller` | N/A | MuJoCo only |
+
+Auto-generated topic index: {doc}`_generated/ros_graph/topic_index`.

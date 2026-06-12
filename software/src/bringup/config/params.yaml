@@ -1,6 +1,67 @@
+# Shared fishing tension controllers (Julie admittance + Chaoyi force feedback).
+# Select at launch: controller_type:=admittance | force_feedback | none
+
 admittance_controller:
   ros__parameters:
-    admittance_gain: 0.15
-    max_velocity: 1.0
+    target_tension: 3.5
     safety_tension_limit: 20.0
-    target_tension: 5.0   # desired line tension (N) the arm tries to maintain
+
+    # 1DOF mode (notebook-equivalent): control pitch_joint only; lock base_joint.
+    control_dof: 1
+    pitch_joint: Joint_2
+    base_joint: Joint_1
+    joint_1_hold: 1.57   # base_joint lock angle (rad)
+
+    # Pitch setpoints (rad). Smaller = rod raised = higher tension.
+    q_init: 1.745
+    q_hook: 1.40
+    q_neutral: 1.605
+    q_min: 0.10
+    q_max: 2.20
+
+    bite_time: 2.4
+    hook_duration: 1.2
+    tension_filter_alpha: 0.055
+    control_rate_hz: 50.0
+
+    # Julie admittance (virtual mass-spring-damper)
+    m_v: 0.6
+    b_v: 5.5
+    k_v: 20.0
+    k_f: 8.0
+    kp_track: 140.0
+    kd_track: 20.0
+    ki_track: 0.0
+    k_g: 9.95
+    rod_length: 0.185
+    j_alpha: 0.05
+    pos_int_limit: 0.15
+    max_torque: 20.0
+
+force_feedback_controller:
+  ros__parameters:
+    target_tension: 3.5
+    safety_tension_limit: 20.0
+
+    control_dof: 1
+    pitch_joint: Joint_2
+    base_joint: Joint_1
+    joint_1_hold: 1.57
+
+    q_init: 1.745
+    q_hook: 1.40
+    q_neutral: 1.605
+    q_min: 0.10
+    q_max: 2.20
+
+    bite_time: 2.4
+    hook_duration: 1.2
+    tension_filter_alpha: 0.055
+    control_rate_hz: 50.0
+
+    # Chaoyi asymmetric proportional feedback (tuned for 3.5 N target in MuJoCo)
+    tension_to_angle_gain: 0.261799   # rad/N (~15 deg/N)
+    qeq_alpha: 0.04
+    max_qeq_step: 0.00384             # rad (~0.22 deg)
+    raise_gain: 1.25
+    lower_gain: 0.80

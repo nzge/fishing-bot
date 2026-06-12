@@ -1,11 +1,11 @@
 import rclpy
 
-from control.fishing_controller_node import AdmittanceControllerNode
+from control.fishing_controller_node import ForceFeedbackControllerNode
 
 
 def main(args=None):
     rclpy.init(args=args)
-    node = AdmittanceControllerNode()
+    node = ForceFeedbackControllerNode()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

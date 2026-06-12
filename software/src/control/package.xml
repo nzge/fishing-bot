@@ -3,11 +3,12 @@
 <package format="3">
   <name>control</name>
   <version>0.0.0</version>
-  <description>Admittance control logic for the robotic fishing arm.</description>
+  <description>Tension controllers for the robotic fishing arm (admittance and force feedback).</description>
   <maintainer email="nathange784@gmail.com">nzge</maintainer>
   <license>MIT</license>
 
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>trajectory_msgs</exec_depend>
   <exec_depend>interfaces</exec_depend>
 

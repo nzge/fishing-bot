@@ -18,7 +18,7 @@ setup(
     zip_safe=True,
     maintainer='nzge',
     maintainer_email='nathange784@gmail.com',
-    description='Admittance control logic for the robotic fishing arm',
+    description='Tension controllers for the robotic fishing arm',
     license='MIT',
     extras_require={
         'test': [
@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': [
             'admittance_node = control.admittance_controller:main',
+            'force_feedback_node = control.force_feedback_controller:main',
             'position_test_publisher = control.position_test_publisher:main',
         ],
     },

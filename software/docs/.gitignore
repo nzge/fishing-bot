@@ -4,5 +4,8 @@ _build/
 # Generated reference + API pages (created only when you run docs/build.sh)
 _generated/
 
+# SVG exports from make export-diagrams
+exports/
+
 # Local docs virtualenv
 .venv/

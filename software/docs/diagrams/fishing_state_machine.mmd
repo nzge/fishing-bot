@@ -1,0 +1,32 @@
+%% Fishing controller state machine (shared by admittance & force-feedback)
+
+stateDiagram-v2
+    [*] --> MONITOR: node start (t=0)
+
+    MONITOR --> HOOK_SET: t ≥ bite_time (default 2.4 s)
+    note right of MONITOR
+        Hold q_init pitch.
+        No tension regulation.
+        Admittance: f_desired = 0
+    end note
+
+    HOOK_SET --> REGULATE: t ≥ bite_time + hook_duration (default 1.2 s)
+    note right of HOOK_SET
+        Smoothstep sweep q_init → q_hook.
+        Simulates hook-set motion.
+    end note
+
+    REGULATE --> REGULATE: control loop
+    note right of REGULATE
+        Track target_tension (default 3.5 N).
+        Admittance: virtual mass-spring-damper.
+        Force-feedback: asymmetric P mapping.
+    end note
+
+    REGULATE --> ESTOP: |tension| > safety_tension_limit
+    note left of ESTOP
+        Hold last safe position.
+        Log warning once.
+    end note
+
+    ESTOP --> REGULATE: tension back in range

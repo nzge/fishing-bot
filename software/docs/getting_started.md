@@ -51,6 +51,9 @@ The full set of launch arguments is documented on the
 [`bringup` reference page](_generated/reference/packages/bringup.md), and is
 regenerated when you run `./docs/build.sh`.
 
+For architecture, package internals, and ROS 2 graphs (sim vs hardware), see
+{doc}`overview` and {doc}`packages/index`.
+
 ## Build the documentation locally
 
 ```bash

@@ -24,23 +24,51 @@ Build the workspace, source it, and launch the simulator or hardware stack.
 :link: overview
 :link-type: doc
 
-How the sim/real switch, controller manager, and application nodes fit together.
+Sim/real switch, control loop, package map, and navigation hub.
 :::
 
-:::{grid-item-card} {octicon}`package` Package reference
+:::{grid-item-card} {octicon}`package` Package guide
+:link: packages/index
+:link-type: doc
+
+In-depth narrative for every package: nodes, algorithms, interactions.
+:::
+
+:::{grid-item-card} {octicon}`git-branch` ROS 2 graphs
+:link: ros2/index
+:link-type: doc
+
+Separate simulation vs hardware node/topic diagrams with explanations.
+:::
+
+:::{grid-item-card} {octicon}`file` Package reference (auto)
 :link: _generated/reference/index
 :link-type: doc
 
-Auto-generated docs for every package: nodes, launch args, parameters, messages.
+Machine-generated launch args, parameters, messages — always in sync.
 :::
 
-:::{grid-item-card} {octicon}`code` Python API
+:::{grid-item-card} {octicon}`code` Python API (auto)
 :link: _generated/reference/api
 :link-type: doc
 
-Full module / class / function reference, generated statically from the source.
+Module / class / function reference via static analysis.
 :::
 ::::
+
+## Documentation map
+
+```{mermaid}
+flowchart TB
+    GS["getting_started"] --> OV["overview"]
+    OV --> PKG["packages/"]
+    OV --> ROS["ros2/"]
+    PKG --> REF["_generated/reference/"]
+    PKG --> API["_generated/autoapi/"]
+    ROS --> DIA["diagrams/*.mmd"]
+    DP["doc_pipeline"] -.-> REF
+    DP -.-> ROS
+```
 
 ## Building the documentation
 
@@ -58,8 +86,17 @@ doc_pipeline
 
 ```{toctree}
 :hidden:
-:caption: Reference
+:caption: Architecture
+
+packages/index
+ros2/index
+```
+
+```{toctree}
+:hidden:
+:caption: Reference (auto-generated)
 
 _generated/reference/index
 _generated/reference/api
+_generated/ros_graph/topic_index
 ```

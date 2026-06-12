@@ -48,7 +48,8 @@
 
         <body name="Link_2" pos="0 -0.02335 0.03875">
           <inertial pos="-0.000376763 0.02285 0.0758976" quat="1 0 -0.000462491 0" mass="0.0374845" diaginertia="9.81279e-05 9.58498e-05 4.42178e-06"/>
-          <joint name="Joint_2" pos="0 0 0" axis="0 1 0" range="-3.1416 3.1416" actuatorfrcrange="-2.5 2.5"/>
+          <joint name="Joint_2" pos="0 0 0" axis="0 1 0" range="-3.1416 3.1416"
+                 actuatorfrcrange="-2.5 2.5" damping="1.8" armature="0.03"/>
           <geom type="mesh" mesh="Link_2_collision" group="3"/>
           <geom type="mesh" mesh="Link_2_visual" rgba="0.75 0.75 0.75 1" contype="0" conaffinity="0"/>
 
@@ -77,9 +78,12 @@
   <!-- ================== The Fishing Line ==================
        Elastic spatial tendon: rod tip <-> fish. springlength is the slack
        length; beyond it the line pulls like a spring (stiffness/damping). -->
+  <!-- Elastic spatial tendon: rod tip <-> fish. springlength sets the slack
+       length; when geometric distance exceeds it the line pulls. Tuned so the
+       starting_pose keyframe (Joint_2=1.745) begins with a taut line (~0.22 m). -->
   <tendon>
     <spatial name="fishing_line" width="0.0015" rgba="0.05 0.05 0.05 1"
-             stiffness="200" damping="0.5" springlength="0.38">
+             stiffness="220" damping="1.5" springlength="0.20">
       <site site="rod_tip_site"/>
       <site site="fish_site"/>
     </spatial>
@@ -88,11 +92,13 @@
   <actuator>
     <!-- Arm servos: the ros2_control 'position' command interface for Joint_1 /
          Joint_2 maps natively onto these MuJoCo position actuators. -->
-    <position joint="Joint_1" name="Joint_1" kp="10" dampratio="1" ctrlrange="-3.1416 3.1416"/>
-    <position joint="Joint_2" name="Joint_2" kp="10" dampratio="1" ctrlrange="-3.1416 3.1416"/>
+    <position joint="Joint_1" name="Joint_1" kp="25" dampratio="1.0" ctrlrange="-3.1416 3.1416"/>
+    <position joint="Joint_2" name="Joint_2" kp="85" dampratio="1.0" ctrlrange="-3.1416 3.1416"/>
     <!-- The fish's pull: ros2_control 'effort' interface for the fish_swim joint
          maps onto this motor (commanded via a forward_command_controller). -->
-    <motor name="fish_force" joint="fish_swim" gear="1" ctrlrange="-5 5"/>
+    <!-- gear=-1 so positive effort pulls the fish away from the rod (+Y),
+         tensioning the line. fish_agent publishes positive Newton values. -->
+    <motor name="fish_force" joint="fish_swim" gear="-1" ctrlrange="-5 5"/>
   </actuator>
 
   <!-- ============== Line tension (the load cell) ==============

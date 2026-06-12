@@ -1,0 +1,24 @@
+%% MuJoCo simulation — physical cause-and-effect chain (below ROS layer)
+
+flowchart TB
+    classDef agent fill:#fff3e0,stroke:#e65100
+    classDef physics fill:#e8f5e9,stroke:#2e7d32
+    classDef sensor fill:#e3f2fd,stroke:#1565c0
+
+    FA["fish_agent<br/>sinusoidal effort cmd"]:::agent
+    MOTOR["MuJoCo fish_force motor<br/>fish_swim prismatic joint"]:::physics
+    FISH["fish body"]:::physics
+    TENDON["line tendon<br/>k=220 N/m · L0=0.20 m · c=1.5"]:::physics
+    ROD["rod_tip_site"]:::physics
+    FTS["tension_sensor FTS<br/>(MJCF sensor)"]:::sensor
+    TF["TF: rod_tip_link ↔ fish_link"]:::sensor
+
+    FA -->|"Float64 effort"| MOTOR
+    MOTOR --> FISH
+    FISH --> TENDON
+    TENDON --> ROD
+    ROD --> FTS
+    ROD --> TF
+    FTS -->|"WrenchStamped<br/>(fallback)"| LC1["load_cell_node<br/>stretch model OR wrench magnitude"]
+    TF -->|"line length L"| LC1
+    LC1 -->|"FishingTension"| CTRL["tension controller"]

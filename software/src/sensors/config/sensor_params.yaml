@@ -22,5 +22,11 @@ load_cell_node:
     noise_floor: 0.1             
     
     # --- Frame / Transform ---
-    # The name of the link in your URDF where the sensor is mounted
     frame_id: "rod_tip_link"
+
+    # --- Simulation stretch model (must match fishing-robot_sim.xml tendon) ---
+    sim_line_stiffness: 220.0
+    sim_line_springlength: 0.20
+    sim_line_damping: 1.5
+    sim_rod_frame: "rod_tip_link"
+    sim_fish_frame: "fish_link"
