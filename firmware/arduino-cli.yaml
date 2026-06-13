@@ -1,0 +1,7 @@
+# Project-local arduino-cli config (libraries + cores live under firmware/.arduino15/)
+board_manager:
+  additional_urls: []
+directories:
+  data: .arduino15
+  downloads: .arduino15/staging
+  user: .

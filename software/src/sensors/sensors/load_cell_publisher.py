@@ -4,10 +4,13 @@ from collections import deque
 from typing import Optional
 
 import rclpy
+import serial
 from rclpy.node import Node
 from geometry_msgs.msg import WrenchStamped
 from interfaces.msg import FishingTension
 from tf2_ros import Buffer, TransformListener
+
+from sensors.arduino_load_cell import ArduinoLoadCellReader
 
 
 class LoadCellPublisher(Node):
@@ -24,9 +27,17 @@ class LoadCellPublisher(Node):
         self.declare_parameter('tension_max_threshold', 20.0)
         self.declare_parameter('noise_floor', 0.1)
         self.declare_parameter('frame_id', 'rod_tip_link')
-        # 'hardware' = HX711 load cell; 'sim_fts' = MuJoCo line-tension estimate.
+        # 'hardware' = HX711 via Arduino serial; 'sim_fts' = MuJoCo line-tension estimate.
         self.declare_parameter('source', 'hardware')
         self.declare_parameter('wrench_topic', '/tension_sensor_broadcaster/wrench')
+        # Arduino HX711 path (project_w_t_controller.ipynb protocol).
+        self.declare_parameter('arduino_port', '/dev/ttyACM0')
+        self.declare_parameter('arduino_baud', 9600)
+        self.declare_parameter('arduino_timeout_s', 0.05)
+        self.declare_parameter('tare_on_start', True)
+        self.declare_parameter('tare_samples', 20)
+        self.declare_parameter('sensor_sign', 1.0)
+        self.declare_parameter('sensor_line_filter_window', 2)
         # Sim stretch model (matches fishing-robot_sim.xml tendon parameters).
         self.declare_parameter('sim_line_stiffness', 220.0)
         self.declare_parameter('sim_line_springlength', 0.20)
@@ -44,6 +55,14 @@ class LoadCellPublisher(Node):
         self.frame_id = self.get_parameter('frame_id').value
         self.source = self.get_parameter('source').value
         self.wrench_topic = self.get_parameter('wrench_topic').value
+        self.arduino_port = self.get_parameter('arduino_port').value
+        self.arduino_baud = int(self.get_parameter('arduino_baud').value)
+        self.arduino_timeout_s = float(self.get_parameter('arduino_timeout_s').value)
+        self.tare_on_start = bool(self.get_parameter('tare_on_start').value)
+        self.tare_samples = int(self.get_parameter('tare_samples').value)
+        self.sensor_sign = float(self.get_parameter('sensor_sign').value)
+        self.sensor_line_filter_window = int(
+            self.get_parameter('sensor_line_filter_window').value)
         self.sim_line_stiffness = self.get_parameter('sim_line_stiffness').value
         self.sim_line_springlength = self.get_parameter('sim_line_springlength').value
         self.sim_line_damping = self.get_parameter('sim_line_damping').value
@@ -56,11 +75,18 @@ class LoadCellPublisher(Node):
         self._latest_force = None
         self._prev_line_length = None
         self._prev_line_time = None
+        self._arduino: Optional[ArduinoLoadCellReader] = None
+        self._last_filtered_raw: Optional[float] = None
+        self._last_tension = 0.0
+        self._hardware_samples = 0
+
         if self.source == 'sim_fts':
             self._tf_buffer = Buffer()
             self._tf_listener = TransformListener(self._tf_buffer, self)
             self.wrench_sub = self.create_subscription(
                 WrenchStamped, self.wrench_topic, self._wrench_cb, 10)
+        elif self.source == 'hardware':
+            self._init_hardware_reader()
 
         self.timer_period = 1.0 / self.publish_frequency
         self.timer = self.create_timer(self.timer_period, self.timer_callback)
@@ -69,6 +95,46 @@ class LoadCellPublisher(Node):
         self.get_logger().info(
             f'Load Cell Publisher initialized at {self.publish_frequency:.1f} Hz '
             f'(source: {self.source}, frame: {self.frame_id}).')
+
+    def _init_hardware_reader(self) -> None:
+        reader = ArduinoLoadCellReader(
+            port=self.arduino_port,
+            baud=self.arduino_baud,
+            timeout_s=self.arduino_timeout_s,
+            filter_window=self.sensor_line_filter_window,
+            tare_samples=self.tare_samples,
+        )
+        try:
+            reader.open()
+        except serial.SerialException as exc:
+            raise RuntimeError(
+                f'Failed to open Arduino load cell on {self.arduino_port}: {exc}',
+            ) from exc
+
+        zero_offset = self.calibration_offset
+        if self.tare_on_start:
+            self.get_logger().info(
+                'Taring load cell — keep the line unloaded for a moment...')
+            zero_offset = reader.tare()
+            self.get_logger().info(f'Tare complete. zero_offset={zero_offset:.1f}')
+        else:
+            reader.zero_offset = zero_offset
+            self.get_logger().info(
+                f'Using fixed calibration_offset={zero_offset:.1f} (tare_on_start=false)',
+            )
+
+        self._arduino = reader
+        self.calibration_offset = zero_offset
+        self.get_logger().info(
+            f'Arduino HX711 reader active on {self.arduino_port} @ {self.arduino_baud} baud, '
+            f'scale={self.calibration_scale:.6g} N/count.',
+        )
+
+    def destroy_node(self) -> bool:
+        if self._arduino is not None:
+            self._arduino.close()
+            self._arduino = None
+        return super().destroy_node()
 
     def _wrench_cb(self, msg):
         f = msg.wrench.force
@@ -107,25 +173,40 @@ class LoadCellPublisher(Node):
         self._prev_line_time = now
         return max(tension, 0.0)
 
-    def read_raw_adc(self):
-        # --- PLACEHOLDER FOR HARDWARE READ (HX711 SPI/Serial) ---
-        base_tension = 10.0
-        wave_disturbance = 2.0 * math.sin(2.0 * math.pi * 1.0 * self.time_counter)
-        simulated_newtons = base_tension + wave_disturbance
-        return self.calibration_offset + simulated_newtons / self.calibration_scale
+    def _raw_to_newtons(self, filtered_raw: float) -> float:
+        return (
+            self.sensor_sign
+            * self.calibration_scale
+            * (filtered_raw - self.calibration_offset)
+        )
 
-    def read_tension_newtons(self):
+    def read_hardware_tension_newtons(self) -> Optional[float]:
+        """Read one Arduino sample; return None if no new line this cycle."""
+        if self._arduino is None:
+            return None
+        filtered_raw = self._arduino.read_filtered_raw()
+        if filtered_raw is None:
+            return None
+        self._last_filtered_raw = filtered_raw
+        self._hardware_samples += 1
+        return self._raw_to_newtons(filtered_raw)
+
+    def read_tension_newtons(self) -> float:
         if self.source == 'sim_fts':
             stretch_tension = self._sim_stretch_tension()
             if stretch_tension is not None:
                 return stretch_tension
-            # Fallback until TF is available.
             if self._latest_force is None:
                 return 0.0
             fx, fy, fz = self._latest_force
             return math.sqrt(fx * fx + fy * fy + fz * fz)
-        raw = self.read_raw_adc()
-        return (raw - self.calibration_offset) * self.calibration_scale
+
+        tension = self.read_hardware_tension_newtons()
+        if tension is not None:
+            self._last_tension = tension
+            return tension
+        # Hold last reading until the next serial line arrives.
+        return self._last_tension
 
     def timer_callback(self):
         tension = self.read_tension_newtons()
@@ -150,7 +231,10 @@ class LoadCellPublisher(Node):
                 f'{self.tension_max_threshold:.2f} N.')
 
         if int(self.time_counter * self.publish_frequency) % int(self.publish_frequency) == 0:
-            self.get_logger().info(f'Publishing line tension: {tension:.2f} N')
+            detail = ''
+            if self.source == 'hardware' and self._last_filtered_raw is not None:
+                detail = f' (raw={self._last_filtered_raw:.0f})'
+            self.get_logger().info(f'Publishing line tension: {tension:.2f} N{detail}')
 
         self.time_counter += self.timer_period
 

@@ -1,3 +1,7 @@
+/*
+ * DEPRECATED: canonical sketch lives at firmware/load_cell/load_cell.ino
+ * Flash with: ./firmware/scripts/flash.sh
+ */
 #include "HX711.h"
 
 #define DT 3

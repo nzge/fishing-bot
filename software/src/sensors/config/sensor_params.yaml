@@ -1,27 +1,30 @@
-# Configuration for the Fishing Arm Load Cell (HX711 or similar)
+# Configuration for the Fishing Arm Load Cell (HX711 via Arduino serial).
 load_cell_node:
   ros__parameters:
-    # --- Physical Calibration ---
-    # The raw ADC reading at zero load (after taring).
-    calibration_offset: 1245.0  
-    # The multiplier to convert ADC units to Newtons (e.g., N/bit).
-    calibration_scale: 0.0023   
-    
-    # --- Signal Processing ---
-    # Enable low-pass filter or moving average to smooth noise
+    # --- Arduino serial (matches project_w_t_controller.ipynb) ---
+    arduino_port: "/dev/ttyACM0"
+    arduino_baud: 9600
+    arduino_timeout_s: 0.05
+    tare_on_start: true
+    tare_samples: 20
+    sensor_sign: 1.0
+    sensor_line_filter_window: 2
+
+    # --- Physical calibration ---
+    # Used when tare_on_start=false; overwritten by live tare otherwise.
+    calibration_offset: 0.0
+    # N per raw ADC count. Notebook used 4.8e-5; tune on your rig.
+    calibration_scale: 0.000048
+
+    # --- Signal processing ---
     use_moving_average: true
-    # Number of samples for the moving average buffer
-    window_size: 10             
-    # Frequency at which the sensor data is published (Hz)
+    window_size: 10
     publish_frequency: 80.0
-    
-    # --- Safety / Operational Limits ---
-    # If tension exceeds this, the Admittance Controller enters "E-Stop"
-    tension_max_threshold: 20.0  
-    # Below this value, treat input as noise/zero
-    noise_floor: 0.1             
-    
-    # --- Frame / Transform ---
+
+    # --- Safety / operational limits ---
+    tension_max_threshold: 20.0
+    noise_floor: 0.1
+
     frame_id: "rod_tip_link"
 
     # --- Simulation stretch model (must match fishing-robot_sim.xml tendon) ---
