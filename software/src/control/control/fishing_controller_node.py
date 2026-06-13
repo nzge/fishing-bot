@@ -61,8 +61,12 @@ def load_force_feedback_config(node: Node) -> ForceFeedbackConfig:
 class FishingControllerBase(Node):
     """Common subscriptions, safety checks, and trajectory publishing."""
 
-    def __init__(self, node_name: str, cfg: FishingControllerConfig):
+    def __init__(self, node_name: str, cfg: FishingControllerConfig | None = None):
         super().__init__(node_name)
+        if cfg is not None:
+            self._configure(cfg)
+
+    def _configure(self, cfg: FishingControllerConfig) -> None:
         self.cfg = cfg
         self._start_time = self.get_clock().now()
         self._base_pos = cfg.joint_1_hold
@@ -88,20 +92,25 @@ class FishingControllerBase(Node):
         period = 1.0 / cfg.control_rate_hz
         self.create_timer(period, self._control_timer)
 
-        if cfg.control_dof == 1:
-            self.get_logger().info(
-                f'{node_name} ready — 1DOF pitch on {cfg.pitch_joint} '
-                f'({cfg.base_joint} locked at {cfg.joint_1_hold:.3f} rad), '
-                f'target={cfg.target_tension:.2f} N.',
-            )
-        elif cfg.control_dof == 2:
+        if cfg.control_dof == 2:
             self.get_logger().warn(
                 f'{node_name}: control_dof=2 is not implemented yet; '
                 f'behaving as 1DOF on {cfg.pitch_joint}.',
             )
-        else:
+        elif cfg.control_dof != 1:
             self.get_logger().error(
                 f'{node_name}: unsupported control_dof={cfg.control_dof}.',
+            )
+        if cfg.fsm_enabled:
+            self.get_logger().info(
+                f'{self.get_name()} ready — 1DOF on {cfg.pitch_joint}, FSM enabled '
+                f'(REGULATE after {cfg.bite_time + cfg.hook_duration:.1f}s), '
+                f'target={cfg.target_tension:.2f} N.',
+            )
+        else:
+            self.get_logger().info(
+                f'{self.get_name()} ready — 1DOF on {cfg.pitch_joint}, FSM disabled, '
+                f'regulating from t=0, target={cfg.target_tension:.2f} N.',
             )
 
     def _elapsed(self) -> float:
@@ -164,8 +173,9 @@ class AdmittanceControllerNode(FishingControllerBase):
     """ROS2 wrapper for Julie's admittance controller."""
 
     def __init__(self):
+        super().__init__('admittance_controller')
         cfg = load_admittance_config(self)
-        super().__init__('admittance_controller', cfg)
+        self._configure(cfg)
         dt = 1.0 / cfg.control_rate_hz
         self._core = AdmittanceControllerCore(cfg, dt)
         self._core.reset(self._pitch_pos)
@@ -209,8 +219,9 @@ class ForceFeedbackControllerNode(FishingControllerBase):
     """ROS2 wrapper for Chaoyi's proportional force-feedback controller."""
 
     def __init__(self):
+        super().__init__('force_feedback_controller')
         cfg = load_force_feedback_config(self)
-        super().__init__('force_feedback_controller', cfg)
+        self._configure(cfg)
         self._core = ForceFeedbackControllerCore(cfg)
         self.get_logger().info('Force-feedback (Chaoyi) controller active.')
 

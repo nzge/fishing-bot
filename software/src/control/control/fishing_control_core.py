@@ -50,6 +50,9 @@ class FishingControllerConfig:
     q_min: float = 0.10
     q_max: float = 2.20
 
+    # When false, skip MONITOR/HOOK_SET and regulate from t=0 (hardware bring-up).
+    fsm_enabled: bool = True
+
     # State-machine timing (seconds from controller start).
     bite_time: float = 2.4
     hook_duration: float = 1.2
@@ -99,6 +102,8 @@ class ControllerSnapshot:
 
 
 def get_fishing_state(t: float, cfg: FishingControllerConfig) -> FishingState:
+    if not cfg.fsm_enabled:
+        return FishingState.REGULATE
     if t < cfg.bite_time:
         return FishingState.MONITOR
     if t < cfg.bite_time + cfg.hook_duration:

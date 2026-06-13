@@ -77,7 +77,11 @@ def generate_launch_description():
     robot_description = {
         'robot_description': ParameterValue(robot_description_content, value_type=str)}
 
-    controllers_yaml = PathJoinSubstitution([bringup_pkg, 'config', 'controllers.yaml'])
+    controllers_yaml = PathJoinSubstitution([
+        bringup_pkg, 'config',
+        PythonExpression(
+            ["'controllers.yaml' if '", use_sim, "' == 'true' else 'controllers_hw.yaml'"]),
+    ])
 
     # 4. TF broadcaster (runs in both modes).
     robot_state_pub_node = Node(
@@ -144,7 +148,10 @@ def generate_launch_description():
     control_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution([control_pkg, 'launch', 'control.launch.py'])),
-        launch_arguments={'controller_type': controller_type}.items(),
+        launch_arguments={
+            'controller_type': controller_type,
+            'use_sim': use_sim,
+        }.items(),
         condition=UnlessCondition(hardware_check),
     )
     # The load cell runs in both modes; only its data source changes. On hardware

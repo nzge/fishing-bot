@@ -18,9 +18,9 @@
     <mesh name="Link_1_visual" file="Link_1.STL"/>
     <mesh name="Link_2_visual" file="Link_2.STL"/>
 
-    <!-- Fish body mesh (units = metres). Replace fish.STL with any fish model to
-         change its look; adjust 'scale' here to resize it. -->
-    <mesh name="fish_mesh" file="fish.STL" scale="0.1 0.1 0.1"/>
+    <!-- Fish body mesh: fish.STL is authored in centimetres (~29 cm long), unlike
+         the arm STLs which are already in metres. scale≈0.004 yields ~12 cm. -->
+    <mesh name="fish_mesh" file="fish.STL" scale="0.004 0.004 0.004"/>
 
     <!-- Checkered floor for the ground plane -->
     <texture name="grid" type="2d" builtin="checker" rgb1="0.2 0.25 0.3" rgb2="0.3 0.35 0.4" width="300" height="300"/>
@@ -71,7 +71,7 @@
            slides in Y); otherwise it would penetrate/fight the floor. -->
       <geom name="fish_geom" type="mesh" mesh="fish_mesh" euler="0 0 -1.5708"
             rgba="0.85 0.5 0.2 1" mass="0.25" contype="0" conaffinity="0"/>
-      <site name="fish_site" pos="0 0 0" size="0.008" rgba="1 0 0 1"/>
+      <site name="fish_site" pos="0 0 0" size="0.004" rgba="1 0 0 1"/>
     </body>
   </worldbody>
 

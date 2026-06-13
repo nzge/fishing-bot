@@ -21,6 +21,7 @@ admittance_controller:
 
     bite_time: 2.4
     hook_duration: 1.2
+    fsm_enabled: true
     tension_filter_alpha: 0.055
     control_rate_hz: 50.0
 
@@ -56,6 +57,7 @@ force_feedback_controller:
 
     bite_time: 2.4
     hook_duration: 1.2
+    fsm_enabled: true
     tension_filter_alpha: 0.055
     control_rate_hz: 50.0
 

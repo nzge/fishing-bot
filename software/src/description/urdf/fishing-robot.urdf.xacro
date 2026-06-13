@@ -128,27 +128,45 @@
         </xacro:unless>
     </hardware>
 
-    <joint name="Joint_1">
-        <param name="id">1</param>
-        <command_interface name="position">
-            <param name="min">-3.1416</param>
-            <param name="max">3.1416</param>
-        </command_interface>
-        <state_interface name="position"/>
-        <state_interface name="velocity"/>
-        <state_interface name="effort"/>
-    </joint>
+    <!-- Simulation: both joints are actuated in MuJoCo. -->
+    <xacro:if value="$(arg use_sim)">
+        <joint name="Joint_1">
+            <param name="id">1</param>
+            <command_interface name="position">
+                <param name="min">-3.1416</param>
+                <param name="max">3.1416</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
 
-    <joint name="Joint_2">
-        <param name="id">2</param>
-        <command_interface name="position">
-            <param name="min">-3.1416</param>
-            <param name="max">3.1416</param>
-        </command_interface>
-        <state_interface name="position"/>
-        <state_interface name="velocity"/>
-        <state_interface name="effort"/>
-    </joint>
+        <joint name="Joint_2">
+            <param name="id">2</param>
+            <command_interface name="position">
+                <param name="min">-3.1416</param>
+                <param name="max">3.1416</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </xacro:if>
+
+    <!-- Hardware: 1-DOF pitch only (project_w_t_controller.ipynb: DXL_ID=1 @ 57600).
+         Base Joint_1 is not on the bus; only the rod pitch servo is connected. -->
+    <xacro:unless value="$(arg use_sim)">
+        <joint name="Joint_2">
+            <param name="id">1</param>
+            <command_interface name="position">
+                <param name="min">-3.1416</param>
+                <param name="max">3.1416</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </xacro:unless>
 
     <!-- Simulation-only interfaces: the virtual fish and the line load cell exist
          in the MuJoCo scene, not on the physical arm. -->

@@ -20,7 +20,8 @@ recorder:
 # moves + a tension sampling window; tune the safety margins for your rig.
 hardware_check:
   ros__parameters:
-    joints: ["Joint_1", "Joint_2"]
+    # Hardware is 1-DOF pitch (Joint_2 / Dynamixel ID 1); base not on the bus.
+    joints: ["Joint_2"]
     move_delta: 0.2              # rad, per-joint test move
     move_time: 2.0              # s, trajectory duration (slow = gentle)
     settle_time: 1.0            # s, extra time to arrive

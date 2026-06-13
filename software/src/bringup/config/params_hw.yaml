@@ -1,0 +1,14 @@
+# Hardware bring-up overrides (layered on params.yaml when use_sim:=false).
+# Skips the sim-style bite/hook timeline so tension regulation starts immediately.
+
+admittance_controller:
+  ros__parameters:
+    fsm_enabled: false
+    bite_time: 0.0
+    hook_duration: 0.0
+
+force_feedback_controller:
+  ros__parameters:
+    fsm_enabled: false
+    bite_time: 0.0
+    hook_duration: 0.0
