@@ -207,3 +207,46 @@ make -C software/docs diagrams-svg
 Paste any `diagrams/*.mmd` into [mermaid.live](https://mermaid.live) → Export PNG/SVG.
 
 See {doc}`ros2/diagram_exports` for the full diagram catalog.
+
+## Export the full codebase as PDF
+
+When simulation videos are recorded and the `software/` tree is finalized, export
+the entire ROS 2 documentation bundle (narrative guides, auto-generated package
+reference, Python API, ROS graphs) as a single print-ready PDF:
+
+```bash
+cd ~/fishing-bot/software/docs
+./export_codebase_pdf.sh
+```
+
+The script checks readiness before building:
+
+1. **Simulation videos** — `admittance_*` and `force_feedback_*` runs with
+   `animation.mp4` under `software/recordings/` (from
+   `ros2 launch bringup robot.launch.py headless:=true record:=true`).
+2. **Clean workspace** — no uncommitted changes under `software/`.
+
+If you are not ready yet, the script exits with a checklist. Options:
+
+```bash
+./export_codebase_pdf.sh --wait          # poll every 60s until gates pass
+./export_codebase_pdf.sh --force         # export now (skip gates)
+./export_codebase_pdf.sh --with-plots    # also refresh simulate_controllers.py plots
+./export_codebase_pdf.sh --output ~/report/fishing-robot.pdf
+```
+
+**Output:** `software/docs/exports/fishing-robot-ros2-codebase.pdf`
+
+**How it works:**
+
+1. `sphinx-build -b singlehtml` — one long HTML page with all docs content.
+2. Headless Chromium (Puppeteer) prints the page with `print.css` (hides Furo
+   chrome, page breaks at sections, waits for Mermaid diagrams to render).
+3. Diagram PDFs are also refreshed via `make diagrams-pdf` (unless `--no-diagrams`).
+
+Lower-level targets (without readiness gates):
+
+```bash
+make -C software/docs site-pdf     # singlehtml + PDF only
+make -C software/docs singlehtml  # HTML only
+```

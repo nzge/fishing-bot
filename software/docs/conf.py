@@ -137,7 +137,7 @@ todo_include_todos = True
 html_theme = "furo"
 html_title = "Fishing Robot Docs"
 html_static_path = ["_static"]
-html_css_files = ["custom.css"]
+html_css_files = ["custom.css", "print.css"]
 html_theme_options = {
     "sidebar_hide_name": False,
     "navigation_with_keys": True,

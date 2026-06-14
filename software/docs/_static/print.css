@@ -1,0 +1,87 @@
+/* Print / PDF export styles (used by export_site_pdf.js via emulateMediaType('print')). */
+
+@media print {
+  /* Furo layout: full-width content, no chrome. */
+  .sidebar-drawer,
+  .sidebar-container,
+  .toc-drawer,
+  .header-article,
+  .footer,
+  .page-nav,
+  .header-item--right,
+  .header-item--left .header-item__button {
+    display: none !important;
+  }
+
+  .content,
+  .article-container,
+  .bd-article-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .bd-main .bd-content {
+    padding: 0 !important;
+  }
+
+  /* Avoid splitting headings from the following paragraph. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid-page;
+    page-break-after: avoid;
+  }
+
+  /* Major sections start on a new page. */
+  h1 {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  h1:first-of-type {
+    break-before: auto;
+    page-break-before: auto;
+  }
+
+  /* Keep tables and diagrams intact when possible. */
+  table,
+  pre,
+  .highlight,
+  .mermaid,
+  figure,
+  .sd-card {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+
+  /* Mermaid SVGs: scale to column width. */
+  .mermaid svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Links: show URL once for external refs (optional, subtle). */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.75em;
+    color: #666;
+    word-break: break-all;
+  }
+
+  a[href^="#"]::after,
+  a[href^="file://"]::after,
+  a[href^="../"]::after,
+  a[href^="./"]::after,
+  a[href^="_"]::after {
+    content: none;
+  }
+
+  /* Hide copy-button widgets. */
+  .copybutton,
+  .headerlink {
+    display: none !important;
+  }
+}

@@ -10,7 +10,9 @@ MMD_SOURCES   := $(wildcard diagrams/*.mmd)
 PDF_TARGETS   := $(patsubst diagrams/%.mmd,exports/pdf/%.pdf,$(MMD_SOURCES))
 SVG_TARGETS   := $(patsubst diagrams/%.mmd,exports/svg/%.svg,$(MMD_SOURCES))
 
-.PHONY: help html clean linkcheck export-diagrams export-diagrams-pdf export-diagrams-svg diagrams-pdf diagrams-svg
+SITE_PDF       ?= exports/fishing-robot-ros2-codebase.pdf
+
+.PHONY: help html singlehtml site-pdf clean linkcheck export-diagrams export-diagrams-pdf export-diagrams-svg diagrams-pdf diagrams-svg
 
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -26,6 +28,17 @@ endif
 	@$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html" $(SPHINXOPTS) $(O)
 	@echo "Build finished. Open $(BUILDDIR)/html/index.html"
 	@echo "Diagram PDFs: exports/pdf/"
+
+singlehtml:
+ifneq ($(SKIP_DIAGRAM_PDF),1)
+	@$(MAKE) diagrams-pdf
+endif
+	@$(SPHINXBUILD) -b singlehtml "$(SOURCEDIR)" "$(BUILDDIR)/singlehtml" $(SPHINXOPTS) $(O)
+	@echo "Single-page HTML: $(BUILDDIR)/singlehtml/index.html"
+
+site-pdf: singlehtml
+	@node scripts/export_site_pdf.js "$(BUILDDIR)/singlehtml/index.html" "$(SITE_PDF)"
+	@echo "Codebase PDF: $(SITE_PDF)"
 
 clean:
 	rm -rf "$(BUILDDIR)" _generated
