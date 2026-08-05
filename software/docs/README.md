@@ -30,7 +30,8 @@ pip install -r docs/requirements.pip
 
 ```bash
 ./docs/build.sh        # build -> docs/_build/html/index.html
-./docs/export_codebase_pdf.sh  # full codebase PDF (when videos + code are finalized)
+./docs/export_codebase_pdf.sh   # documentation PDF (Sphinx)
+./docs/export_source_code_pdf.sh  # raw source code PDF
 make -C docs clean     # remove _build/ and _generated/
 ```
 

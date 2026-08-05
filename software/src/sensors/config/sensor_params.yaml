@@ -26,6 +26,7 @@ load_cell_node:
     noise_floor: 0.1
 
     frame_id: "rod_tip_link"
+    target_tension: 3.5
 
     # --- Simulation stretch model (must match fishing-robot_sim.xml tendon) ---
     sim_line_stiffness: 220.0

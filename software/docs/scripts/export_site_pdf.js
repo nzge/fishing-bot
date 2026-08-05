@@ -11,6 +11,30 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
+
+function resolveChromeExecutable() {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  for (const candidate of [
+    '/usr/bin/google-chrome',
+    '/usr/bin/google-chrome-stable',
+    '/usr/bin/chromium',
+    '/usr/bin/chromium-browser',
+  ]) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  try {
+    return execSync('command -v google-chrome || command -v chromium || command -v chromium-browser', {
+      encoding: 'utf8',
+    }).trim();
+  } catch (_) {
+    return undefined;
+  }
+}
 
 async function resolvePuppeteer(docsDir) {
   try {
@@ -50,8 +74,10 @@ async function waitForMermaid(page, timeoutMs) {
 async function main() {
   const htmlArg = process.argv[2];
   const pdfArg = process.argv[3];
+  const footerTitle = process.env.PDF_TITLE || 'Fishing Robot ROS 2 Codebase';
   if (!htmlArg || !pdfArg) {
     console.error('Usage: node export_site_pdf.js <input.html> <output.pdf>');
+    console.error('Env:  PDF_TITLE="Custom footer label"');
     process.exit(1);
   }
 
@@ -67,6 +93,10 @@ async function main() {
 
   const puppeteer = await resolvePuppeteer(docsDir);
   const launchOpts = { headless: true };
+  const chromePath = resolveChromeExecutable();
+  if (chromePath) {
+    launchOpts.executablePath = chromePath;
+  }
   if (fs.existsSync(puppeteerCfg)) {
     launchOpts.args = JSON.parse(fs.readFileSync(puppeteerCfg, 'utf8')).args;
   }
@@ -89,7 +119,9 @@ async function main() {
       headerTemplate: '<span></span>',
       footerTemplate:
         '<div style="width:100%;font-size:8px;color:#666;text-align:center;padding:0 0.5in;">'
-        + '<span>Fishing Robot ROS 2 Codebase</span>'
+        + `<span>${footerTitle.replace(/[<>&"]/g, (c) => (
+          { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' }[c]
+        ))}</span>`
         + ' · <span class="pageNumber"></span> / <span class="totalPages"></span>'
         + '</div>',
     });

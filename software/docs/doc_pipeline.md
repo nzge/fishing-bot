@@ -250,3 +250,30 @@ Lower-level targets (without readiness gates):
 make -C software/docs site-pdf     # singlehtml + PDF only
 make -C software/docs singlehtml  # HTML only
 ```
+
+## Export raw source code as PDF
+
+To download every source file under `software/src/` (Python nodes, launch files,
+YAML configs, URDF/xacro, messages, etc.) as a single syntax-highlighted PDF:
+
+```bash
+cd ~/fishing-bot/software/docs
+./export_source_code_pdf.sh
+```
+
+**Output:** `software/docs/exports/fishing-robot-ros2-source.pdf`
+
+This export has **no readiness gates** — it always reflects the current tree on
+disk, including uncommitted changes. Use it when you need a code snapshot for
+submission or archival; use `export_codebase_pdf.sh` for the narrative docs.
+
+Options:
+
+```bash
+./export_source_code_pdf.sh --include-sim   # also include software/sim/ MJCF
+./export_source_code_pdf.sh --output ~/Downloads/source.pdf
+make -C software/docs source-pdf           # Makefile alias
+```
+
+Each file appears with line numbers, grouped by ROS 2 package, with a table of
+contents at the front. Binary assets (STL meshes) are skipped automatically.

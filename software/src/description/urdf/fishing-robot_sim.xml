@@ -65,7 +65,7 @@
          generated fish mesh; the euler rotates its nose (+X) to face the robot
          (-Y). A slide joint lets the fish swim along Y; the 'fish_force'
          actuator lets planning/fish_agent pull on it, tensioning the line. -->
-    <body name="fish" pos="0 0.4 0.0">
+    <body name="fish" pos="0 0.4 0.025">
       <joint name="fish_swim" type="slide" axis="0 -1 0" range="-0.35 0.35" damping="0.5"/>
       <!-- contype/conaffinity 0: the fish ignores ground collision (it only
            slides in Y); otherwise it would penetrate/fight the floor. -->
@@ -114,7 +114,7 @@
   <!-- qpos order: Joint_1, Joint_2, fish_swim. Rod starts upright with the
        line cast out to the fish. -->
   <keyframe>
-    <key name="starting_pose" qpos="1.57 1.745"/>
+    <key name="starting_pose" qpos="1.57 1.745 0"/>
   </keyframe>
 
 </mujoco>

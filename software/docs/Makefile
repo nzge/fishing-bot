@@ -11,8 +11,10 @@ PDF_TARGETS   := $(patsubst diagrams/%.mmd,exports/pdf/%.pdf,$(MMD_SOURCES))
 SVG_TARGETS   := $(patsubst diagrams/%.mmd,exports/svg/%.svg,$(MMD_SOURCES))
 
 SITE_PDF       ?= exports/fishing-robot-ros2-codebase.pdf
+SOURCE_PDF    ?= exports/fishing-robot-ros2-source.pdf
+SOURCE_HTML   ?= _build/source_code/index.html
 
-.PHONY: help html singlehtml site-pdf clean linkcheck export-diagrams export-diagrams-pdf export-diagrams-svg diagrams-pdf diagrams-svg
+.PHONY: help html singlehtml site-pdf source-pdf clean linkcheck export-diagrams export-diagrams-pdf export-diagrams-svg diagrams-pdf diagrams-svg
 
 help:
 	@$(SPHINXBUILD) -M help "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
@@ -39,6 +41,9 @@ endif
 site-pdf: singlehtml
 	@node scripts/export_site_pdf.js "$(BUILDDIR)/singlehtml/index.html" "$(SITE_PDF)"
 	@echo "Codebase PDF: $(SITE_PDF)"
+
+source-pdf:
+	@bash export_source_code_pdf.sh --output "$(SOURCE_PDF)"
 
 clean:
 	rm -rf "$(BUILDDIR)" _generated

@@ -98,13 +98,17 @@
        also exists in the MJCF, where it is physically simulated). Not part of the
        real arm, hence gated on use_sim. -->
   <xacro:if value="$(arg use_sim)">
+    <!-- The fish frame MUST match the MJCF 'fish' body (pos 0 0.4 0.025, slide
+         axis 0 -1 0) so the load cell's TF-based line-length estimate agrees
+         with the physically simulated line. Mismatch here makes the measured
+         tension diverge from what the rod actually sees. -->
     <link name="fish_link" />
     <joint name="fish_swim" type="prismatic">
-      <origin xyz="0 -0.4 0.2" rpy="0 0 0" />
+      <origin xyz="0 0.4 0.025" rpy="0 0 0" />
       <parent link="base_link" />
       <child link="fish_link" />
       <axis xyz="0 -1 0" />
-      <limit lower="-1.0" upper="1.0" effort="10.0" velocity="10.0" />
+      <limit lower="-0.35" upper="0.35" effort="10.0" velocity="10.0" />
     </joint>
   </xacro:if>
 

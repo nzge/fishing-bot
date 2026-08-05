@@ -27,6 +27,9 @@ class LoadCellPublisher(Node):
         self.declare_parameter('tension_max_threshold', 20.0)
         self.declare_parameter('noise_floor', 0.1)
         self.declare_parameter('frame_id', 'rod_tip_link')
+        # Target line tension (published for diagnostics overlays; the controllers
+        # own the real setpoint, this just annotates the recorded signal).
+        self.declare_parameter('target_tension', 3.5)
         # 'hardware' = HX711 via Arduino serial; 'sim_fts' = MuJoCo line-tension estimate.
         self.declare_parameter('source', 'hardware')
         self.declare_parameter('wrench_topic', '/tension_sensor_broadcaster/wrench')
@@ -53,6 +56,7 @@ class LoadCellPublisher(Node):
         self.tension_max_threshold = self.get_parameter('tension_max_threshold').value
         self.noise_floor = self.get_parameter('noise_floor').value
         self.frame_id = self.get_parameter('frame_id').value
+        self.target_tension = float(self.get_parameter('target_tension').value)
         self.source = self.get_parameter('source').value
         self.wrench_topic = self.get_parameter('wrench_topic').value
         self.arduino_port = self.get_parameter('arduino_port').value
@@ -222,7 +226,7 @@ class LoadCellPublisher(Node):
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = self.frame_id
         msg.tension_newtons = float(tension)
-        msg.target_tension_newtons = 0.0
+        msg.target_tension_newtons = self.target_tension
         self.publisher_.publish(msg)
 
         if tension > self.tension_max_threshold:

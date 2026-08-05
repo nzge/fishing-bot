@@ -50,3 +50,4 @@ MUJOCO_LOG.TXT
 
 # Ignore direnv environment cache
 .direnv/
+.venv-nbexport/
